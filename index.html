@@ -838,7 +838,8 @@ async function analyzeWithGemini(dataUrl, promptText) {
 function parseGeminiJson(text) {
   if (!text) return null;
   try {
-    const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+    let cleaned = text.replace(/<think>[\s\S]*?<\/think>/gi, '');
+    cleaned = cleaned.replace(/```json/gi, '').replace(/```/g, '').trim();
     const start = cleaned.indexOf('{');
     const end = cleaned.lastIndexOf('}');
     if (start < 0 || end < 0) return null;
@@ -846,9 +847,9 @@ function parseGeminiJson(text) {
   } catch { return null; }
 }
 
-const GEMINI_PROMPT_CONFIRM = `Voce analisa um frame de camera de vigilancia. Detector automatico sinalizou: "{LABEL}". Sua resposta deve ser APENAS um objeto JSON valido em portugues brasileiro, sem raciocinio, sem markdown, sem texto antes ou depois. Formato exato: {"confirmed":true,"description":"texto curto em pt-BR de no maximo 15 palavras","urgency":"baixa"} onde confirmed e true ou false, urgency e baixa|media|alta. Responda o JSON agora.`;
+const GEMINI_PROMPT_CONFIRM = `/no_think Voce analisa um frame de camera de vigilancia. Detector automatico sinalizou: "{LABEL}". NAO use tags de raciocinio como <think>. Responda APENAS o objeto JSON em portugues brasileiro, sem texto antes ou depois. Formato: {"confirmed":true,"description":"texto curto em pt-BR max 15 palavras","urgency":"baixa"} onde confirmed=true|false, urgency=baixa|media|alta.`;
 
-const GEMINI_PROMPT_PERIODIC = `Voce analisa um frame de camera de vigilancia. Sua resposta deve ser APENAS um objeto JSON valido em portugues brasileiro, sem raciocinio, sem markdown, sem texto antes ou depois. Formato exato: {"status":"normal","description":"texto em pt-BR de no maximo 20 palavras","concerns":[]} onde status e normal|atencao|risco, concerns e array de strings (vazio se tudo normal). Responda o JSON agora.`;
+const GEMINI_PROMPT_PERIODIC = `/no_think Voce analisa um frame de camera de vigilancia. NAO use tags de raciocinio como <think>. Responda APENAS o objeto JSON em portugues brasileiro, sem texto antes ou depois. Formato: {"status":"normal","description":"texto em pt-BR max 20 palavras","concerns":[]} onde status=normal|atencao|risco, concerns=array de strings (vazio se normal).`;
 
 
 // ============ FALL DETECTOR (v4 — centroide global) ============
