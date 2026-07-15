@@ -545,9 +545,9 @@ async function runPeriodicAiAnalysis() {
   for (const [peerId, tile] of state.cameras) {
     if (!tile.gotStream) continue;
     try {
-      const hiRes = captureThumbnail(tile.video, GEMINI_SNAPSHOT_W, GEMINI_SNAPSHOT_H);
-      if (!hiRes) continue;
-      const text = await analyzeWithGemini(hiRes, GEMINI_PROMPT_PERIODIC);
+      const frames = await captureFrameSequence(tile.video, 3, 500, GEMINI_SNAPSHOT_W, GEMINI_SNAPSHOT_H);
+      if (frames.length === 0) continue;
+      const text = await analyzeWithGemini(frames, GEMINI_PROMPT_PERIODIC);
       const parsed = text ? (parseGeminiJson(text) || { raw: text }) : { error: true, description: 'Análise indisponível' };
       const status = parsed.status || 'normal';
       const now = Date.now();
@@ -819,15 +819,17 @@ function showVideoModal(url) {
   document.body.appendChild(bd);
 }
 
-async function analyzeWithGemini(dataUrl, promptText) {
+async function analyzeWithGemini(dataUrlOrArray, promptText) {
   try {
-    if (!dataUrl || !dataUrl.startsWith('data:')) return null;
-    const base64 = dataUrl.split(',')[1];
-    const mime = dataUrl.match(/^data:([^;]+);/)?.[1] || 'image/jpeg';
+    const arr = Array.isArray(dataUrlOrArray) ? dataUrlOrArray : [dataUrlOrArray];
+    const valid = arr.filter(u => u && u.startsWith('data:'));
+    if (valid.length === 0) return null;
+    const images = valid.map(u => u.split(',')[1]);
+    const mime = valid[0].match(/^data:([^;]+);/)?.[1] || 'image/jpeg';
     const res = await fetch('/api/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: promptText, image: base64, mime, model: GEMINI_MODEL })
+      body: JSON.stringify({ prompt: promptText, images, mime, model: GEMINI_MODEL })
     });
     if (!res.ok) { console.warn('Gemini proxy', res.status, await res.text()); return null; }
     const data = await res.json();
@@ -847,9 +849,9 @@ function parseGeminiJson(text) {
   } catch { return null; }
 }
 
-const GEMINI_PROMPT_CONFIRM = `/no_think Voce analisa um frame de camera de vigilancia. Detector automatico sinalizou: "{LABEL}". NAO use tags de raciocinio como <think>. Responda APENAS o objeto JSON em portugues brasileiro, sem texto antes ou depois. Formato: {"confirmed":true,"description":"texto curto em pt-BR max 15 palavras","urgency":"baixa"} onde confirmed=true|false, urgency=baixa|media|alta.`;
+const GEMINI_PROMPT_CONFIRM = `Voce analisa 5 frames sequenciais (mini-video de ~1.5s) de uma camera de vigilancia. Detector automatico sinalizou: "{LABEL}". Analise a SEQUENCIA de imagens (o que muda entre elas) e confirme se o evento realmente aconteceu. Responda APENAS o objeto JSON em pt-BR, sem texto extra. Formato: {"confirmed":true,"description":"o que aconteceu em pt-BR max 20 palavras","urgency":"baixa"} onde confirmed=true|false (true se evento confirmado), urgency=baixa|media|alta.`;
 
-const GEMINI_PROMPT_PERIODIC = `/no_think Voce analisa um frame de camera de vigilancia. NAO use tags de raciocinio como <think>. Responda APENAS o objeto JSON em portugues brasileiro, sem texto antes ou depois. Formato: {"status":"normal","description":"texto em pt-BR max 20 palavras","concerns":[]} onde status=normal|atencao|risco, concerns=array de strings (vazio se normal).`;
+const GEMINI_PROMPT_PERIODIC = `Voce analisa 3 frames sequenciais (~1s) de uma camera de vigilancia. Descreva o que esta acontecendo entre as imagens (movimento, atividade, mudancas). Responda APENAS o objeto JSON em pt-BR, sem texto extra. Formato: {"status":"normal","description":"o que esta acontecendo em pt-BR max 25 palavras","concerns":[]} onde status=normal|atencao|risco, concerns=array de preocupacoes (vazio se normal).`;
 
 
 // ============ FALL DETECTOR (v4 — centroide global) ============
@@ -1167,10 +1169,10 @@ function triggerAlert(tile, prediction) {
   (async () => {
     let parsed = null;
     try {
-      const hiRes = captureThumbnail(tile.video, GEMINI_SNAPSHOT_W, GEMINI_SNAPSHOT_H);
-      if (hiRes) {
+      const frames = await captureFrameSequence(tile.video, 5, 300, GEMINI_SNAPSHOT_W, GEMINI_SNAPSHOT_H);
+      if (frames.length > 0) {
         const prompt = GEMINI_PROMPT_CONFIRM.replace('{LABEL}', prediction.label);
-        const text = await analyzeWithGemini(hiRes, prompt);
+        const text = await analyzeWithGemini(frames, prompt);
         if (text) parsed = parseGeminiJson(text) || { raw: text };
       }
     } catch (err) { console.warn('gemini alert fail:', err); }
@@ -1208,6 +1210,16 @@ function captureThumbnail(video, w, h) {
     c.getContext('2d').drawImage(video, sx, sy, sw, sh, 0, 0, w, h);
     return c.toDataURL('image/jpeg', 0.6);
   } catch { return null; }
+}
+
+async function captureFrameSequence(video, count = 5, intervalMs = 300, w = 640, h = 480) {
+  const frames = [];
+  for (let i = 0; i < count; i++) {
+    const frame = captureThumbnail(video, w, h);
+    if (frame) frames.push(frame);
+    if (i < count - 1) await new Promise(r => setTimeout(r, intervalMs));
+  }
+  return frames;
 }
 function playAlert() {
   const ctx = detection.audioCtx; if (!ctx) return;
