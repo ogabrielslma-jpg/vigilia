@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0d0a">
+<title>Vigília — Painel de vigilância</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root {
+  --bg: #0a0d0a;
+  --bg-elevated: rgba(20, 23, 20, 0.6);
+  --border: #262b26;
+  --border-strong: #3a3f3a;
+  --text: #e8ebe5;
+  --muted: #7a807a;
+  --dim: #4a504a;
+  --accent: #e8b84c;
+  --danger: #d4614a;
+  --success: #7fa870;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+button { font-family: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+input { font-family: inherit; color: inherit; background: none; border: none; outline: none; }
+
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* --- Mode select --- */
+.mode-select {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 3rem 1.5rem;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.brand {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.brand-sub {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 0.75rem;
+}
+
+.mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 4rem;
+}
+
+.mode-card {
+  padding: 1.75rem 1.5rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.mode-card:hover, .mode-card:focus-visible { border-color: var(--accent); background: rgba(232,184,76,0.04); }
+.mode-card:focus-visible { outline: none; }
+.mode-card:hover .mode-marker, .mode-card:focus-visible .mode-marker { color: var(--accent); }
+
+.mode-marker {
+  font-family: var(--font-mono);
+  color: var(--dim);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.mode-content { flex: 1; }
+.mode-title { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
+.mode-desc { color: var(--muted); font-size: 0.85rem; margin-top: 0.35rem; line-height: 1.5; }
+
+.mode-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+}
+
+/* --- Topbar --- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+}
+
+.topbar-brand {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--dim);
+  transition: background 0.2s ease;
+}
+.status-dot.live {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.topbar-actions { display: flex; gap: 0.5rem; }
+
+.btn {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: transparent;
+  transition: all 0.15s ease;
+  font-weight: 500;
+}
+.btn:hover:not(:disabled) { border-color: var(--border-strong); background: rgba(255,255,255,0.02); }
+
+.btn-primary { border-color: var(--accent); color: var(--accent); }
+.btn-primary:hover:not(:disabled) { background: var(--accent); color: var(--bg); }
+
+.btn-danger { border-color: var(--danger); color: var(--danger); }
+.btn-danger:hover:not(:disabled) { background: var(--danger); color: var(--bg); }
+
+/* --- Camera mode --- */
+.camera-screen { display: flex; flex-direction: column; min-height: 100dvh; }
+
+.camera-body {
+  flex: 1;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 42rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.id-block {
+  border: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-elevated);
+}
+
+.id-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.id-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.75rem;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-top: 0.35rem;
+  user-select: all;
+}
+
+.id-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+
+.video-frame {
+  position: relative;
+  aspect-ratio: 4/3;
+  background: #000;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.video-frame video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.video-overlay {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  background: linear-gradient(to top, rgba(0,0,0,0.65), transparent 45%);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+.live-indicator {
+  display: flex; align-items: center; gap: 0.5rem;
+  color: var(--accent);
+}
+.live-indicator::before {
+  content: '';
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.controls-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.status-line {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  line-height: 1.5;
+}
+.status-line.error { color: var(--danger); }
+.status-line.ok { color: var(--success); }
+
+/* --- Panel mode --- */
+.panel-screen { display: flex; flex-direction: column; min-height: 100dvh; }
+
+.panel-body { flex: 1; padding: 1.25rem; }
+
+.add-camera {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--border);
+  background: var(--bg-elevated);
+  margin-bottom: 1.25rem;
+  max-width: 32rem;
+}
+
+.add-camera input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  background: var(--bg);
+  font-size: 0.85rem;
+}
+.add-camera input:focus { border-color: var(--accent); }
+.add-camera input::placeholder { color: var(--dim); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 0.75rem;
+}
+
+.tile {
+  border: 1px solid var(--border);
+  background: #000;
+  aspect-ratio: 4/3;
+  position: relative;
+  overflow: hidden;
+}
+
+.tile video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tile-empty-msg {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  background: #000;
+  text-align: center;
+  padding: 1rem;
+}
+
+.tile-header {
+  position: absolute; top: 0; left: 0; right: 0;
+  padding: 0.55rem 0.75rem;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  z-index: 2;
+}
+
+.tile-id { color: var(--text); font-weight: 500; }
+
+.tile-footer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 0.55rem 0.75rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  z-index: 2;
+}
+
+.tile-live {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--accent);
+}
+.tile-live.active { display: inline-flex; }
+.tile-live::before {
+  content: '';
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 5px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.tile-time { color: var(--text); }
+
+.tile-remove {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 0.15rem 0.4rem;
+  transition: color 0.15s ease;
+  pointer-events: auto;
+}
+.tile-remove:hover { color: var(--danger); }
+
+.grid-empty {
+  padding: 4rem 2rem;
+  border: 1px dashed var(--border);
+  text-align: center;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  line-height: 1.8;
+}
+.grid-empty .empty-hint {
+  display: block;
+  color: var(--dim);
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+  <div id="app"></div>
+
+<script>
+// ============================================================
+// VIGÍLIA — painel de vigilância residencial via WebRTC
+// ============================================================
+
+const app = document.getElementById('app');
+
+const state = {
+  mode: null,
+  peer: null,
+  myId: null,
+  localStream: null,
+  currentFacing: 'environment',
+  activeCalls: new Set(),
+  cameras: new Map(), // peerId -> tile
+  clockInt: null,
+};
+
+// --- utils ---
+function friendlyId() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return 'vg-' + s;
+}
+
+function storage(key, val) {
+  try {
+    if (val === undefined) return JSON.parse(localStorage.getItem(key) || 'null');
+    localStorage.setItem(key, JSON.stringify(val));
+  } catch { /* privacy mode / artifact sandbox */ }
+}
+
+function fmtTime(d = new Date()) {
+  return d.toLocaleTimeString('pt-BR', { hour12: false });
+}
+
+// A minimal "empty" stream so peer.call() can be initiated one-way
+function createEmptyStream() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2; canvas.height = 2;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, 2, 2);
+  return canvas.captureStream(1);
+}
+
+// ============ mode select ============
+function renderModeSelect() {
+  app.innerHTML = `
+    <div class="mode-select">
+      <div>
+        <div class="brand">VIGÍLIA</div>
+        <div class="brand-sub">painel de vigilância residencial</div>
+      </div>
+      <div class="mode-options">
+        <button class="mode-card" data-mode="camera">
+          <div class="mode-marker">01</div>
+          <div class="mode-content">
+            <div class="mode-title">Ser câmera</div>
+            <div class="mode-desc">Este dispositivo transmite. Abra no iPhone que ficará como câmera fixa.</div>
+          </div>
+        </button>
+        <button class="mode-card" data-mode="panel">
+          <div class="mode-marker">02</div>
+          <div class="mode-content">
+            <div class="mode-title">Ver painel</div>
+            <div class="mode-desc">Este dispositivo monitora. Abra no computador ou tablet de onde você vai assistir.</div>
+          </div>
+        </button>
+      </div>
+      <div class="mode-footer">
+        Vídeo direto entre dispositivos (peer-to-peer). Nenhum servidor guarda a imagem.
+      </div>
+    </div>
+  `;
+  app.querySelectorAll('.mode-card').forEach(el => {
+    el.addEventListener('click', () => selectMode(el.dataset.mode));
+  });
+}
+
+function selectMode(mode) {
+  state.mode = mode;
+  if (mode === 'camera') renderCamera();
+  else renderPanel();
+}
+
+// ============ CAMERA MODE ============
+function renderCamera() {
+  app.innerHTML = `
+    <div class="camera-screen">
+      <div class="topbar">
+        <div class="topbar-brand">
+          <span class="status-dot" id="cam-status-dot"></span>
+          <span>VIGÍLIA · CÂMERA</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn" id="back-btn">Voltar</button>
+        </div>
+      </div>
+      <div class="camera-body">
+        <div class="id-block">
+          <div class="id-label">ID desta câmera</div>
+          <div class="id-value" id="cam-id">gerando…</div>
+          <div class="id-actions">
+            <button class="btn btn-primary" id="copy-id" disabled>Copiar ID</button>
+          </div>
+        </div>
+        <div class="video-frame">
+          <video id="local-video" autoplay muted playsinline></video>
+          <div class="video-overlay">
+            <span class="live-indicator">AO VIVO</span>
+            <span id="local-time">--:--:--</span>
+          </div>
+        </div>
+        <div class="controls-row">
+          <button class="btn" id="flip-cam">Virar câmera</button>
+          <button class="btn btn-danger" id="stop-cam">Encerrar</button>
+        </div>
+        <div class="status-line" id="cam-status">Iniciando…</div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('back-btn').addEventListener('click', backToMenu);
+  document.getElementById('flip-cam').addEventListener('click', flipCamera);
+  document.getElementById('stop-cam').addEventListener('click', backToMenu);
+  document.getElementById('copy-id').addEventListener('click', copyId);
+
+  const clockEl = document.getElementById('local-time');
+  state.clockInt = setInterval(() => { if (clockEl) clockEl.textContent = fmtTime(); }, 1000);
+  clockEl.textContent = fmtTime();
+
+  startCameraFlow();
+}
+
+async function startCameraFlow() {
+  try {
+    setCamStatus('Solicitando acesso à câmera…');
+    await startLocalCamera();
+    setCamStatus('Câmera ativa. Conectando ao serviço de sinalização…');
+    initPeerAsCamera();
+  } catch (err) {
+    let msg = err.message || String(err);
+    if (err.name === 'NotAllowedError') msg = 'Permissão de câmera negada. Autorize e recarregue a página.';
+    if (err.name === 'NotFoundError') msg = 'Nenhuma câmera encontrada neste dispositivo.';
+    setCamStatus(msg, 'error');
+  }
+}
+
+async function startLocalCamera() {
+  if (state.localStream) state.localStream.getTracks().forEach(t => t.stop());
+  state.localStream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: state.currentFacing, width: { ideal: 1280 }, height: { ideal: 720 } },
+    audio: false,
+  });
+  const v = document.getElementById('local-video');
+  if (v) v.srcObject = state.localStream;
+}
+
+async function flipCamera() {
+  state.currentFacing = state.currentFacing === 'environment' ? 'user' : 'environment';
+  try {
+    await startLocalCamera();
+    const newTrack = state.localStream.getVideoTracks()[0];
+    state.activeCalls.forEach(call => {
+      const sender = call.peerConnection?.getSenders().find(s => s.track && s.track.kind === 'video');
+      if (sender && newTrack) sender.replaceTrack(newTrack);
+    });
+    setCamStatus('Câmera virada.', 'ok');
+  } catch (err) {
+    setCamStatus('Erro ao virar câmera: ' + err.message, 'error');
+  }
+}
+
+function initPeerAsCamera() {
+  const savedId = storage('vigilia:my-id');
+  const desiredId = savedId || friendlyId();
+  connectAsCamera(desiredId);
+}
+
+function connectAsCamera(id) {
+  try { state.peer && state.peer.destroy(); } catch {}
+  state.peer = new Peer(id);
+
+  state.peer.on('open', (openedId) => {
+    state.myId = openedId;
+    storage('vigilia:my-id', openedId);
+    const el = document.getElementById('cam-id');
+    if (el) el.textContent = openedId;
+    const copy = document.getElementById('copy-id');
+    if (copy) copy.disabled = false;
+    document.getElementById('cam-status-dot')?.classList.add('live');
+    setCamStatus('Aguardando painel se conectar…');
+  });
+
+  state.peer.on('call', (call) => {
+    call.answer(state.localStream);
+    state.activeCalls.add(call);
+    setCamStatus(`Painel conectado (${state.activeCalls.size} viewer${state.activeCalls.size > 1 ? 's' : ''}).`, 'ok');
+    call.on('close', () => {
+      state.activeCalls.delete(call);
+      if (state.activeCalls.size === 0) setCamStatus('Aguardando painel se conectar…');
+      else setCamStatus(`${state.activeCalls.size} viewer${state.activeCalls.size > 1 ? 's' : ''} conectado(s).`, 'ok');
+    });
+    call.on('error', (e) => console.warn('Call error', e));
+  });
+
+  state.peer.on('error', (err) => {
+    console.error('Peer error', err);
+    if (err.type === 'unavailable-id') {
+      const newId = friendlyId();
+      storage('vigilia:my-id', newId);
+      setCamStatus('ID em uso, gerando outro…');
+      setTimeout(() => connectAsCamera(newId), 500);
+    } else if (err.type === 'network' || err.type === 'disconnected' || err.type === 'server-error') {
+      setCamStatus('Sem conexão com sinalização. Tentando reconectar…', 'error');
+      setTimeout(() => connectAsCamera(state.myId || friendlyId()), 3000);
+    } else {
+      setCamStatus('Erro: ' + err.type, 'error');
+    }
+  });
+
+  state.peer.on('disconnected', () => {
+    setCamStatus('Desconectado. Reconectando…', 'error');
+    try { state.peer.reconnect(); } catch {}
+  });
+}
+
+async function copyId() {
+  if (!state.myId) return;
+  try {
+    await navigator.clipboard.writeText(state.myId);
+    setCamStatus('ID copiado para a área de transferência.', 'ok');
+  } catch {
+    setCamStatus('Copie manualmente: ' + state.myId);
+  }
+}
+
+function setCamStatus(msg, kind) {
+  const el = document.getElementById('cam-status');
+  if (!el) return;
+  el.textContent = 'Status: ' + msg;
+  el.className = 'status-line' + (kind ? ' ' + kind : '');
+}
+
+// ============ PANEL MODE ============
+function renderPanel() {
+  app.innerHTML = `
+    <div class="panel-screen">
+      <div class="topbar">
+        <div class="topbar-brand">
+          <span class="status-dot" id="panel-status-dot"></span>
+          <span>VIGÍLIA · PAINEL</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn" id="back-btn">Voltar</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="add-camera">
+          <input id="add-input" placeholder="cole aqui o ID (ex: vg-3F7B)" autocapitalize="off" autocomplete="off" spellcheck="false">
+          <button class="btn btn-primary" id="add-btn">Adicionar</button>
+        </div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('back-btn').addEventListener('click', backToMenu);
+  document.getElementById('add-btn').addEventListener('click', onAddCamera);
+  document.getElementById('add-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') onAddCamera();
+  });
+
+  renderGridEmpty();
+  initPeerAsPanel();
+}
+
+function onAddCamera() {
+  const input = document.getElementById('add-input');
+  const id = input.value.trim();
+  if (!id) return;
+  input.value = '';
+  connectToCamera(id);
+}
+
+function initPeerAsPanel() {
+  try { state.peer && state.peer.destroy(); } catch {}
+  state.peer = new Peer();
+
+  state.peer.on('open', () => {
+    document.getElementById('panel-status-dot')?.classList.add('live');
+    const saved = storage('vigilia:panel-cams') || [];
+    saved.forEach(id => connectToCamera(id));
+  });
+
+  state.peer.on('error', (err) => {
+    console.error('Panel peer error', err);
+  });
+
+  state.peer.on('disconnected', () => {
+    try { state.peer.reconnect(); } catch {}
+  });
+}
+
+function persistCameras() {
+  storage('vigilia:panel-cams', Array.from(state.cameras.keys()));
+}
+
+function connectToCamera(peerId) {
+  peerId = peerId.trim();
+  if (!peerId) return;
+  if (state.cameras.has(peerId)) return;
+
+  const tile = createTile(peerId);
+  const emptyEl = document.getElementById('grid-empty');
+  if (emptyEl) emptyEl.remove();
+  document.getElementById('grid').appendChild(tile.wrapper);
+  state.cameras.set(peerId, tile);
+  persistCameras();
+
+  const emptyStream = createEmptyStream();
+  const call = state.peer.call(peerId, emptyStream);
+  if (!call) {
+    tile.setState('não foi possível iniciar chamada');
+    return;
+  }
+  tile.call = call;
+
+  const timeout = setTimeout(() => {
+    if (!tile.gotStream) tile.setState('sem resposta — verifique o ID');
+  }, 15000);
+
+  call.on('stream', (remoteStream) => {
+    clearTimeout(timeout);
+    tile.gotStream = true;
+    tile.video.srcObject = remoteStream;
+    tile.setLive();
+  });
+
+  call.on('close', () => {
+    tile.setState('câmera desconectada');
+  });
+
+  call.on('error', (e) => {
+    console.warn('Call err', e);
+    tile.setState('erro de conexão');
+  });
+}
+
+function createTile(peerId) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'tile';
+
+  const video = document.createElement('video');
+  video.autoplay = true;
+  video.muted = true;
+  video.playsInline = true;
+  wrapper.appendChild(video);
+
+  const emptyMsg = document.createElement('div');
+  emptyMsg.className = 'tile-empty-msg';
+  emptyMsg.textContent = 'conectando…';
+  wrapper.appendChild(emptyMsg);
+
+  const header = document.createElement('div');
+  header.className = 'tile-header';
+  header.innerHTML = `
+    <span class="tile-id"></span>
+    <button class="tile-remove" title="Remover">✕</button>
+  `;
+  header.querySelector('.tile-id').textContent = peerId;
+  wrapper.appendChild(header);
+
+  const footer = document.createElement('div');
+  footer.className = 'tile-footer';
+  footer.innerHTML = `
+    <span class="tile-live">AO VIVO</span>
+    <span class="tile-time">--:--:--</span>
+  `;
+  wrapper.appendChild(footer);
+
+  const timeEl = footer.querySelector('.tile-time');
+  const liveEl = footer.querySelector('.tile-live');
+  const removeBtn = header.querySelector('.tile-remove');
+
+  const timeInt = setInterval(() => { timeEl.textContent = fmtTime(); }, 1000);
+  timeEl.textContent = fmtTime();
+
+  const tile = {
+    wrapper, video, gotStream: false, call: null,
+    setLive() {
+      emptyMsg.style.display = 'none';
+      liveEl.classList.add('active');
+    },
+    setState(msg) {
+      liveEl.classList.remove('active');
+      emptyMsg.textContent = msg;
+      emptyMsg.style.display = 'flex';
+    },
+    destroy() {
+      clearInterval(timeInt);
+      try { tile.call && tile.call.close(); } catch {}
+      try { tile.video.srcObject?.getTracks().forEach(t => t.stop()); } catch {}
+      wrapper.remove();
+    }
+  };
+
+  removeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    state.cameras.delete(peerId);
+    persistCameras();
+    tile.destroy();
+    if (state.cameras.size === 0) renderGridEmpty();
+  });
+
+  wrapper.addEventListener('dblclick', () => {
+    if (document.fullscreenElement === wrapper) document.exitFullscreen();
+    else wrapper.requestFullscreen?.().catch(() => {});
+  });
+
+  return tile;
+}
+
+function renderGridEmpty() {
+  const grid = document.getElementById('grid');
+  if (!grid || grid.children.length > 0) return;
+  const el = document.createElement('div');
+  el.className = 'grid-empty';
+  el.id = 'grid-empty';
+  el.innerHTML = `
+    NENHUMA CÂMERA ADICIONADA
+    <span class="empty-hint">
+      Abra este mesmo endereço no iPhone (Safari), escolha "Ser câmera",<br>
+      copie o ID que aparece lá e cole no campo acima.
+    </span>
+  `;
+  grid.appendChild(el);
+}
+
+// ============ cleanup / back ============
+function backToMenu() {
+  try { state.peer && state.peer.destroy(); } catch {}
+  if (state.localStream) state.localStream.getTracks().forEach(t => t.stop());
+  if (state.clockInt) clearInterval(state.clockInt);
+  state.cameras.forEach(t => t.destroy());
+  state.cameras.clear();
+  state.activeCalls.clear();
+  state.localStream = null;
+  state.peer = null;
+  state.myId = null;
+  renderModeSelect();
+}
+
+// ============ boot ============
+renderModeSelect();
+</script>
+</body>
+</html>
