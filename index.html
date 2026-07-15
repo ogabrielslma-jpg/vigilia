@@ -163,6 +163,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .log-video-btn { display: inline-block; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.05em; border: 1px solid var(--detect); color: var(--detect); background: transparent; cursor: pointer; transition: all 0.15s; }
 .log-video-btn:hover { background: var(--detect); color: var(--bg); }
 .log-video-status { display: inline-block; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.05em; color: var(--dim); }
+.log-ai { display: block; margin-top: 0.4rem; padding: 0.35rem 0.55rem; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.02em; line-height: 1.45; border-left: 2px solid var(--detect); color: var(--detect); background: rgba(110,194,232,0.06); }
+.log-ai.risco { border-left-color: var(--danger); color: var(--danger); background: rgba(212,97,74,0.08); }
+.log-ai.atencao { border-left-color: var(--accent); color: var(--accent); background: rgba(232,184,76,0.08); }
+.log-ai.ok { border-left-color: var(--success); color: var(--success); background: rgba(127,168,112,0.06); }
+.log-ai.pending { border-left-color: var(--dim); color: var(--muted); background: transparent; font-style: italic; }
+.log-ai em { font-style: normal; opacity: 0.7; }
 
 @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 </style>
@@ -174,6 +180,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 // ============================================================
 // VIGÍLIA v4 — detector de queda reescrito (centroide global)
 // ============================================================
+
+// Gemini (analise por IA) - chave fica no servidor Vercel via /api/gemini
+const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_PERIODIC_INTERVAL_MS = 10 * 60 * 1000;
+const GEMINI_SNAPSHOT_W = 640;
+const GEMINI_SNAPSHOT_H = 480;
 
 // Supabase (gravacoes de clip)
 const SUPABASE_URL = 'https://fjrtnksndmwncmssonum.supabase.co';
@@ -212,6 +224,7 @@ const LOG_FILTER_MATCH = {
   fall:   (ev) => ev.class === 'fall',
   person: (ev) => ev.class === 'person',
   pet:    (ev) => ev.class === 'cat' || ev.class === 'dog',
+  ai:     (ev) => ev.class === 'ai-review',
 };
 
 const CLASS_MIN_SCORE = {
@@ -522,6 +535,40 @@ function initPeerAsPanel() {
     cleanupOldRecordings();
     window._vigiliaCleanupInterval = setInterval(cleanupOldRecordings, CLEANUP_INTERVAL_MS);
   }
+  if (!window._vigiliaAiInterval) {
+    window._vigiliaAiInterval = setInterval(runPeriodicAiAnalysis, GEMINI_PERIODIC_INTERVAL_MS);
+  }
+}
+
+async function runPeriodicAiAnalysis() {
+  if (!detection.enabled) return;
+  for (const [peerId, tile] of state.cameras) {
+    if (!tile.gotStream) continue;
+    try {
+      const hiRes = captureThumbnail(tile.video, GEMINI_SNAPSHOT_W, GEMINI_SNAPSHOT_H);
+      if (!hiRes) continue;
+      const text = await analyzeWithGemini(hiRes, GEMINI_PROMPT_PERIODIC);
+      if (!text) continue;
+      const parsed = parseGeminiJson(text) || { raw: text };
+      const status = parsed.status || 'normal';
+      const now = Date.now();
+      const smallThumb = captureThumbnail(tile.video, 320, 240);
+      const event = {
+        id: 'ai_' + now + '_' + Math.random().toString(36).slice(2, 6),
+        time: now, peerId,
+        class: 'ai-review',
+        label: status === 'risco' ? 'IA: risco' : status === 'atencao' ? 'IA: atenção' : 'IA: normal',
+        score: 1, thumb: smallThumb, videoUrl: null,
+        aiAnalysis: parsed,
+      };
+      detection.events.unshift(event);
+      if (detection.events.length > 50) detection.events = detection.events.slice(0, 50);
+      storage('vigilia:events', detection.events);
+      updateLogBadge();
+      if (document.getElementById('modal-body')) renderLogItems();
+      if (status === 'risco' && detection.alertsEnabled) playAlert();
+    } catch (err) { console.warn('periodic ai fail:', err); }
+  }
 }
 function persistCameras() { storage('vigilia:panel-cams', Array.from(state.cameras.keys())); }
 function connectToCamera(peerId) {
@@ -772,6 +819,38 @@ function showVideoModal(url) {
   bd.addEventListener('click', (e) => { if (e.target === bd || e.target.classList.contains('video-close')) bd.remove(); });
   document.body.appendChild(bd);
 }
+
+async function analyzeWithGemini(dataUrl, promptText) {
+  try {
+    if (!dataUrl || !dataUrl.startsWith('data:')) return null;
+    const base64 = dataUrl.split(',')[1];
+    const mime = dataUrl.match(/^data:([^;]+);/)?.[1] || 'image/jpeg';
+    const res = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: promptText, image: base64, mime, model: GEMINI_MODEL })
+    });
+    if (!res.ok) { console.warn('Gemini proxy', res.status, await res.text()); return null; }
+    const data = await res.json();
+    return data.text || null;
+  } catch (err) { console.warn('Gemini erro:', err); return null; }
+}
+
+function parseGeminiJson(text) {
+  if (!text) return null;
+  try {
+    const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start < 0 || end < 0) return null;
+    return JSON.parse(cleaned.slice(start, end + 1));
+  } catch { return null; }
+}
+
+const GEMINI_PROMPT_CONFIRM = `Voce esta analisando um frame de camera de galpao de transportadora ou ambiente residencial. Um detector automatico sinalizou possivel evento do tipo: "{LABEL}". Analise a imagem e responda APENAS em JSON valido, sem markdown, sem texto extra: {"confirmed":true|false,"description":"descricao curta em pt-br max 15 palavras","urgency":"baixa"|"media"|"alta"}`;
+
+const GEMINI_PROMPT_PERIODIC = `Voce analisa um frame de camera de vigilancia (galpao ou residencia). Responda APENAS em JSON valido, sem markdown: {"status":"normal"|"atencao"|"risco","description":"descricao em pt-br max 20 palavras","concerns":["preoc1","preoc2"]}. Use "concerns" vazio se tudo normal.`;
+
 
 // ============ FALL DETECTOR (v4 — centroide global) ============
 class FallDetector {
@@ -1085,6 +1164,21 @@ function triggerAlert(tile, prediction) {
   updateLogBadge();
   if (detection.alertsEnabled) playAlert();
 
+  (async () => {
+    try {
+      const hiRes = captureThumbnail(tile.video, GEMINI_SNAPSHOT_W, GEMINI_SNAPSHOT_H);
+      if (!hiRes) return;
+      const prompt = GEMINI_PROMPT_CONFIRM.replace('{LABEL}', prediction.label);
+      const text = await analyzeWithGemini(hiRes, prompt);
+      if (!text) return;
+      const parsed = parseGeminiJson(text) || { raw: text };
+      const ev = detection.events.find(e => e.id === eventId);
+      if (ev) { ev.aiAnalysis = parsed; storage('vigilia:events', detection.events);
+        if (document.getElementById('modal-body')) renderLogItems();
+      }
+    } catch (err) { console.warn('gemini alert fail:', err); }
+  })();
+
   if (tile.recorder) {
     (async () => {
       try {
@@ -1169,6 +1263,7 @@ function renderLogFilters() {
     { key: 'fall',   label: 'Quedas' },
     { key: 'person', label: 'Pessoas' },
     { key: 'pet',    label: 'Pets' },
+    { key: 'ai',     label: 'IA' },
   ];
   wrap.innerHTML = '';
   filters.forEach(f => {
@@ -1212,6 +1307,11 @@ function renderLogItems() {
               : (Date.now() - ev.time < CLIP_MAX_AGE_MS
                  ? `<span class="log-video-status">sem clip</span>`
                  : `<span class="log-video-status">clip expirou</span>`))}
+        ${ev.aiAnalysis
+          ? `<div class="log-ai ${ev.aiAnalysis.urgency === 'alta' || ev.aiAnalysis.status === 'risco' ? 'risco' : (ev.aiAnalysis.urgency === 'media' || ev.aiAnalysis.status === 'atencao' ? 'atencao' : 'ok')}">🤖 ${(ev.aiAnalysis.description || ev.aiAnalysis.raw || '').slice(0, 200)}${ev.aiAnalysis.confirmed === false ? ' <em>(IA discorda)</em>' : ''}${Array.isArray(ev.aiAnalysis.concerns) && ev.aiAnalysis.concerns.length > 0 ? ' — ' + ev.aiAnalysis.concerns.join(', ') : ''}</div>`
+          : (ev.class === 'ai-review' || ev.class === 'fall' || ev.class === 'person'
+              ? '<div class="log-ai pending">🤖 analisando…</div>'
+              : '')}
       </span>
       ${ev.thumb ? `<img class="log-thumb" src="${ev.thumb}" data-idx="${idx}" alt="snapshot">` : `<div class="log-thumb placeholder">sem img</div>`}`;
     body.appendChild(item);
