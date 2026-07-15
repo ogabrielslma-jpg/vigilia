@@ -1,4 +1,4 @@
-// Proxy para Groq (API compatível com OpenAI)
+// Proxy para Groq (API compatível com OpenAI) - Llama 4 Scout (vision, não-reasoning)
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({error:'Method not allowed'}); return; }
   const KEY = process.env.GROQ_KEY;
@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   const { prompt, image, mime } = req.body || {};
   if (!prompt || !image) { res.status(400).json({error:'Missing prompt or image'}); return; }
   try {
-    const modelName = 'qwen/qwen3.6-27b';
+    const modelName = 'meta-llama/llama-4-scout-17b-16e-instruct';
     const dataUrl = `data:${mime || 'image/jpeg'};base64,${image}`;
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
           ]
         }],
         temperature: 0.2,
-        max_completion_tokens: 1200
+        max_completion_tokens: 400
       })
     });
     if (!r.ok) { res.status(r.status).json({ error: 'Groq error', detail: await r.text() }); return; }
