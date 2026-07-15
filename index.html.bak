@@ -138,11 +138,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.08em; font-weight: 700; }
 .modal-header-actions { display: flex; gap: 0.5rem; }
 .modal-body { max-height: 70vh; overflow-y: auto; }
-.log-filters { display: flex; gap: 0.4rem; padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-.log-filter-chip { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.4rem 0.75rem; border: 1px solid var(--border); color: var(--muted); background: transparent; transition: all 0.15s; cursor: pointer; }
-.log-filter-chip:hover { border-color: var(--border-strong); color: var(--text); }
-.log-filter-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(232,184,76,0.08); }
-.log-filter-count { opacity: 0.55; margin-left: 0.35rem; font-weight: 400; }
 .log-empty { padding: 3rem 1.5rem; text-align: center; color: var(--muted); font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.05em; }
 .log-item { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; padding: 0.85rem 1.5rem; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.8rem; transition: background 0.15s; }
 .log-item:hover { background: rgba(255,255,255,0.02); }
@@ -188,14 +183,6 @@ const detection = {
   sensitivity: 'medium',
   targetClasses: new Set(['person', 'cat', 'dog']),
   alertClasses: new Set(['person']),
-  logFilter: 'all',
-};
-
-const LOG_FILTER_MATCH = {
-  all:    () => true,
-  fall:   (ev) => ev.class === 'fall',
-  person: (ev) => ev.class === 'person',
-  pet:    (ev) => ev.class === 'cat' || ev.class === 'dog',
 };
 
 const CLASS_LABELS_PT = {
@@ -1011,57 +998,22 @@ function showLog() {
           <button class="btn" id="close-log">Fechar</button>
         </div>
       </div>
-      <div class="log-filters" id="log-filters"></div>
       <div class="modal-body" id="modal-body"></div>
     </div>`;
   document.body.appendChild(bd);
-  renderLogFilters();
   renderLogItems();
   document.getElementById('close-log').addEventListener('click', () => bd.remove());
   document.getElementById('clear-log').addEventListener('click', () => {
     if (!confirm('Limpar todo o log?')) return;
-    detection.events = []; storage('vigilia:events', []); updateLogBadge();
-    renderLogFilters(); renderLogItems();
+    detection.events = []; storage('vigilia:events', []); updateLogBadge(); renderLogItems();
   });
   bd.addEventListener('click', (e) => { if (e.target === bd) bd.remove(); });
 }
-
-function renderLogFilters() {
-  const wrap = document.getElementById('log-filters');
-  if (!wrap) return;
-  const filters = [
-    { key: 'all',    label: 'Todos' },
-    { key: 'fall',   label: 'Quedas' },
-    { key: 'person', label: 'Pessoas' },
-    { key: 'pet',    label: 'Pets' },
-  ];
-  wrap.innerHTML = '';
-  filters.forEach(f => {
-    const count = detection.events.filter(LOG_FILTER_MATCH[f.key]).length;
-    const btn = document.createElement('button');
-    btn.className = 'log-filter-chip' + (detection.logFilter === f.key ? ' active' : '');
-    btn.innerHTML = `${f.label}<span class="log-filter-count">${count}</span>`;
-    btn.addEventListener('click', () => {
-      detection.logFilter = f.key;
-      renderLogFilters();
-      renderLogItems();
-    });
-    wrap.appendChild(btn);
-  });
-}
 function renderLogItems() {
   const body = document.getElementById('modal-body'); if (!body) return;
-  const match = LOG_FILTER_MATCH[detection.logFilter] || LOG_FILTER_MATCH.all;
-  const filtered = detection.events.map((ev, origIdx) => ({ ev, origIdx })).filter(x => match(x.ev));
-  if (filtered.length === 0) {
-    body.innerHTML = detection.events.length === 0
-      ? '<div class="log-empty">nenhuma detecção registrada</div>'
-      : '<div class="log-empty">nenhum evento neste filtro</div>';
-    return;
-  }
+  if (detection.events.length === 0) { body.innerHTML = '<div class="log-empty">nenhuma detecção registrada</div>'; return; }
   body.innerHTML = '';
-  filtered.forEach(({ ev, origIdx }) => {
-    const idx = origIdx;
+  detection.events.forEach((ev, idx) => {
     const item = document.createElement('div');
     item.className = 'log-item';
     item.innerHTML = `
