@@ -1236,6 +1236,7 @@ function showLog() {
       <div class="modal-header">
         <span>LOG DE DETECÇÕES</span>
         <div class="modal-header-actions">
+          <button class="btn" id="reanalyze-all">Reanalisar</button>
           <button class="btn btn-danger" id="clear-log">Limpar</button>
           <button class="btn" id="close-log">Fechar</button>
         </div>
@@ -1246,6 +1247,7 @@ function showLog() {
   document.body.appendChild(bd);
   renderLogFilters();
   renderLogItems();
+  document.getElementById('reanalyze-all').addEventListener('click', reanalyzeAllEvents);
   document.getElementById('close-log').addEventListener('click', () => bd.remove());
   document.getElementById('clear-log').addEventListener('click', () => {
     if (!confirm('Limpar todo o log?')) return;
@@ -1253,6 +1255,35 @@ function showLog() {
     renderLogFilters(); renderLogItems();
   });
   bd.addEventListener('click', (e) => { if (e.target === bd) bd.remove(); });
+}
+
+async function reanalyzeAllEvents() {
+  const pending = detection.events.filter(ev => !ev.aiAnalysis && ev.thumb);
+  const btn = document.getElementById('reanalyze-all');
+  if (pending.length === 0) {
+    if (btn) { const t = btn.textContent; btn.textContent = 'Nada para reanalisar'; setTimeout(() => btn.textContent = t, 1500); }
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = `0/${pending.length}…`; }
+  let ok = 0, fail = 0;
+  for (let i = 0; i < pending.length; i++) {
+    const ev = pending[i];
+    try {
+      const prompt = ev.class === 'ai-review'
+        ? GEMINI_PROMPT_PERIODIC
+        : GEMINI_PROMPT_CONFIRM.replace('{LABEL}', ev.label);
+      const text = await analyzeWithGemini(ev.thumb, prompt);
+      if (text) {
+        ev.aiAnalysis = parseGeminiJson(text) || { raw: text };
+        ok++;
+        storage('vigilia:events', detection.events);
+        renderLogItems();
+      } else { fail++; }
+    } catch (err) { console.warn('reanalyze fail:', err); fail++; }
+    if (btn) btn.textContent = `${i+1}/${pending.length}…`;
+    await new Promise(r => setTimeout(r, 800));
+  }
+  if (btn) { btn.disabled = false; btn.textContent = `${ok} ok, ${fail} falha`; setTimeout(() => btn.textContent = 'Reanalisar', 3000); }
 }
 
 function renderLogFilters() {
