@@ -548,8 +548,7 @@ async function runPeriodicAiAnalysis() {
       const hiRes = captureThumbnail(tile.video, GEMINI_SNAPSHOT_W, GEMINI_SNAPSHOT_H);
       if (!hiRes) continue;
       const text = await analyzeWithGemini(hiRes, GEMINI_PROMPT_PERIODIC);
-      if (!text) continue;
-      const parsed = parseGeminiJson(text) || { raw: text };
+      const parsed = text ? (parseGeminiJson(text) || { raw: text }) : { error: true, description: 'Análise indisponível' };
       const status = parsed.status || 'normal';
       const now = Date.now();
       const smallThumb = captureThumbnail(tile.video, 320, 240);
@@ -795,7 +794,7 @@ async function cleanupOldRecordings() {
     const listRes = await fetch(`${SUPABASE_URL}/storage/v1/object/list/recordings`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ limit: 1000, offset: 0, sortBy: { column: 'created_at', order: 'asc' } })
+      body: JSON.stringify({ prefix: '', limit: 100, offset: 0 })
     });
     if (!listRes.ok) return;
     const files = await listRes.json();
@@ -1165,18 +1164,20 @@ function triggerAlert(tile, prediction) {
   if (detection.alertsEnabled) playAlert();
 
   (async () => {
+    let parsed = null;
     try {
       const hiRes = captureThumbnail(tile.video, GEMINI_SNAPSHOT_W, GEMINI_SNAPSHOT_H);
-      if (!hiRes) return;
-      const prompt = GEMINI_PROMPT_CONFIRM.replace('{LABEL}', prediction.label);
-      const text = await analyzeWithGemini(hiRes, prompt);
-      if (!text) return;
-      const parsed = parseGeminiJson(text) || { raw: text };
-      const ev = detection.events.find(e => e.id === eventId);
-      if (ev) { ev.aiAnalysis = parsed; storage('vigilia:events', detection.events);
-        if (document.getElementById('modal-body')) renderLogItems();
+      if (hiRes) {
+        const prompt = GEMINI_PROMPT_CONFIRM.replace('{LABEL}', prediction.label);
+        const text = await analyzeWithGemini(hiRes, prompt);
+        if (text) parsed = parseGeminiJson(text) || { raw: text };
       }
     } catch (err) { console.warn('gemini alert fail:', err); }
+    if (!parsed) parsed = { error: true, description: 'Análise indisponível (verifique console)' };
+    const ev = detection.events.find(e => e.id === eventId);
+    if (ev) { ev.aiAnalysis = parsed; storage('vigilia:events', detection.events);
+      if (document.getElementById('modal-body')) renderLogItems();
+    }
   })();
 
   if (tile.recorder) {
@@ -1258,7 +1259,7 @@ function showLog() {
 }
 
 async function reanalyzeAllEvents() {
-  const pending = detection.events.filter(ev => !ev.aiAnalysis && ev.thumb);
+  const pending = detection.events.filter(ev => ev.thumb);
   const btn = document.getElementById('reanalyze-all');
   if (pending.length === 0) {
     if (btn) { const t = btn.textContent; btn.textContent = 'Nada para reanalisar'; setTimeout(() => btn.textContent = t, 1500); }
