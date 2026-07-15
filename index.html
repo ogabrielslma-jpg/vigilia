@@ -156,6 +156,13 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .log-thumb.placeholder { background: var(--border); display: flex; align-items: center; justify-content: center; color: var(--dim); font-size: 0.6rem; letter-spacing: 0.05em; }
 .snapshot-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 2rem; cursor: zoom-out; }
 .snapshot-viewer img { max-width: 100%; max-height: 100%; border: 1px solid var(--border-strong); }
+.video-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.video-viewer video { max-width: 100%; max-height: 100%; border: 1px solid var(--border-strong); background: #000; }
+.video-close { position: absolute; top: 1rem; right: 1rem; width: 2.5rem; height: 2.5rem; border: 1px solid var(--border-strong); background: rgba(0,0,0,0.6); color: var(--text); font-family: var(--font-mono); font-size: 1rem; cursor: pointer; }
+.video-close:hover { border-color: var(--accent); color: var(--accent); }
+.log-video-btn { display: inline-block; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.05em; border: 1px solid var(--detect); color: var(--detect); background: transparent; cursor: pointer; transition: all 0.15s; }
+.log-video-btn:hover { background: var(--detect); color: var(--bg); }
+.log-video-status { display: inline-block; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.05em; color: var(--dim); }
 
 @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 </style>
@@ -167,6 +174,15 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 // ============================================================
 // VIGÍLIA v4 — detector de queda reescrito (centroide global)
 // ============================================================
+
+// Supabase (gravacoes de clip)
+const SUPABASE_URL = 'https://fjrtnksndmwncmssonum.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqcnRua3NuZG13bmNtc3NvbnVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMTg5MzgsImV4cCI6MjA5OTY5NDkzOH0.NV43J8Ykt0mtpJVbI7mCo5INe01G6ou13sLw2acTpps';
+const CLIP_PRE_MS = 3000;
+const CLIP_POST_MS = 1500;
+const CLIP_BITRATE = 500000;
+const CLIP_MAX_AGE_MS = 10 * 60 * 1000;
+const CLEANUP_INTERVAL_MS = 60000;
 
 const app = document.getElementById('app');
 
@@ -496,6 +512,10 @@ function initPeerAsPanel() {
   });
   state.peer.on('error', (err) => console.error(err));
   state.peer.on('disconnected', () => { try { state.peer.reconnect(); } catch {} });
+  if (!window._vigiliaCleanupInterval) {
+    cleanupOldRecordings();
+    window._vigiliaCleanupInterval = setInterval(cleanupOldRecordings, CLEANUP_INTERVAL_MS);
+  }
 }
 function persistCameras() { storage('vigilia:panel-cams', Array.from(state.cameras.keys())); }
 function connectToCamera(peerId) {
@@ -512,6 +532,10 @@ function connectToCamera(peerId) {
   const timeout = setTimeout(() => { if (!tile.gotStream) tile.setState('sem resposta — verifique o ID'); }, 15000);
   call.on('stream', (rs) => {
     clearTimeout(timeout); tile.gotStream = true; tile.video.srcObject = rs; tile.setLive();
+    if (window.MediaRecorder) {
+      try { tile.recorder = new ClipRecorder(rs); tile.recorder.start(); }
+      catch (e) { console.warn('recorder start fail:', e); }
+    }
     startDetectionLoop(tile);
   });
   call.on('close', () => tile.setState('câmera desconectada'));
@@ -624,6 +648,7 @@ function createTile(peerId) {
     },
     destroy() {
       clearInterval(timeInt); clearTimeout(tile.detectionTimeout);
+      try { tile.recorder && tile.recorder.stop(); } catch {}
       try { tile.call && tile.call.close(); } catch {}
       try { tile.video.srcObject?.getTracks().forEach(t => t.stop()); } catch {}
       wrapper.remove();
@@ -654,6 +679,92 @@ function renderGridEmpty() {
     <span class="empty-hint">Abra este mesmo endereço no iPhone (Safari), escolha "Ser câmera",<br>
     copie o ID que aparece lá e cole no campo acima.</span>`;
   grid.appendChild(el);
+}
+
+// ============ CLIP RECORDER ============
+class ClipRecorder {
+  constructor(stream) { this.stream = stream; this.rec = null; this.chunks = []; this.capturePending = false; this.cycleTimer = null; }
+  start() {
+    if (!this.stream || !window.MediaRecorder) return;
+    try { this._newCycle(); } catch (e) { console.warn('ClipRecorder start:', e); return; }
+    this.cycleTimer = setInterval(() => { if (!this.capturePending) this._newCycle(); }, CLIP_PRE_MS);
+  }
+  _newCycle() {
+    if (this.rec && this.rec.state !== 'inactive') {
+      this.rec.ondataavailable = null; this.rec.onstop = null;
+      try { this.rec.stop(); } catch {}
+    }
+    this.chunks = [];
+    const opts = { videoBitsPerSecond: CLIP_BITRATE };
+    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) opts.mimeType = 'video/webm;codecs=vp8';
+    else if (MediaRecorder.isTypeSupported('video/webm')) opts.mimeType = 'video/webm';
+    this.rec = new MediaRecorder(this.stream, opts);
+    this.rec.ondataavailable = (e) => { if (e.data.size > 0) this.chunks.push(e.data); };
+    this.rec.start(500);
+  }
+  async captureClip() {
+    if (!this.rec || this.capturePending) return null;
+    this.capturePending = true;
+    await new Promise(r => setTimeout(r, CLIP_POST_MS));
+    return new Promise(resolve => {
+      const chunks = this.chunks;
+      const mimeType = this.rec.mimeType || 'video/webm';
+      this.rec.onstop = () => {
+        const blob = chunks.length > 0 ? new Blob(chunks, { type: mimeType }) : null;
+        this.capturePending = false; this._newCycle();
+        resolve(blob);
+      };
+      try { this.rec.stop(); }
+      catch { this.capturePending = false; resolve(null); }
+    });
+  }
+  stop() {
+    if (this.cycleTimer) { clearInterval(this.cycleTimer); this.cycleTimer = null; }
+    if (this.rec && this.rec.state !== 'inactive') { try { this.rec.stop(); } catch {} }
+    this.rec = null; this.chunks = [];
+  }
+}
+
+async function uploadClip(filename, blob) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/recordings/${filename}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY, 'Content-Type': blob.type || 'video/webm', 'x-upsert': 'true' },
+      body: blob
+    });
+    if (!res.ok) { console.warn('Upload falhou:', res.status, await res.text()); return null; }
+    return `${SUPABASE_URL}/storage/v1/object/public/recordings/${filename}`;
+  } catch (err) { console.warn('Upload erro:', err); return null; }
+}
+
+async function cleanupOldRecordings() {
+  try {
+    const listRes = await fetch(`${SUPABASE_URL}/storage/v1/object/list/recordings`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit: 1000, offset: 0, sortBy: { column: 'created_at', order: 'asc' } })
+    });
+    if (!listRes.ok) return;
+    const files = await listRes.json();
+    if (!Array.isArray(files)) return;
+    const now = Date.now();
+    const toDelete = files.filter(f => f.created_at && (now - new Date(f.created_at).getTime()) > CLIP_MAX_AGE_MS).map(f => f.name);
+    if (toDelete.length === 0) return;
+    await fetch(`${SUPABASE_URL}/storage/v1/object/recordings`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prefixes: toDelete })
+    });
+    console.log('Vigilia: limpou', toDelete.length, 'clip(s) antigos');
+  } catch (err) { console.warn('Cleanup err:', err); }
+}
+
+function showVideoModal(url) {
+  const bd = document.createElement('div');
+  bd.className = 'video-viewer';
+  bd.innerHTML = `<video src="${url}" controls autoplay playsinline></video><button class="video-close" aria-label="Fechar">✕</button>`;
+  bd.addEventListener('click', (e) => { if (e.target === bd || e.target.classList.contains('video-close')) bd.remove(); });
+  document.body.appendChild(bd);
 }
 
 // ============ FALL DETECTOR (v4 — centroide global) ============
@@ -953,18 +1064,34 @@ function triggerAlert(tile, prediction) {
   detection.cooldowns.set(tile.peerId, now);
 
   const thumb = captureThumbnail(tile.video, 320, 240);
+  const eventId = 'ev_' + now + '_' + Math.random().toString(36).slice(2, 8);
   const event = {
-    time: now, peerId: tile.peerId,
-    class: prediction.class,
-    label: prediction.label,
+    id: eventId, time: now, peerId: tile.peerId,
+    class: prediction.class, label: prediction.label,
     score: prediction.score || 1,
-    thumb,
+    thumb, videoUrl: null,
   };
   detection.events.unshift(event);
   if (detection.events.length > 50) detection.events = detection.events.slice(0, 50);
   storage('vigilia:events', detection.events);
   updateLogBadge();
   if (detection.alertsEnabled) playAlert();
+
+  if (tile.recorder) {
+    (async () => {
+      try {
+        const blob = await tile.recorder.captureClip();
+        if (!blob || blob.size < 1000) return;
+        const filename = `${tile.peerId}-${now}.webm`;
+        const url = await uploadClip(filename, blob);
+        if (!url) return;
+        const ev = detection.events.find(e => e.id === eventId);
+        if (ev) { ev.videoUrl = url; storage('vigilia:events', detection.events);
+          if (document.getElementById('modal-body')) renderLogItems();
+        }
+      } catch (err) { console.warn('clip fail:', err); }
+    })();
+  }
 }
 function captureThumbnail(video, w, h) {
   try {
@@ -1070,12 +1197,22 @@ function renderLogItems() {
         <span class="log-cam">${ev.peerId}</span> —
         <span class="log-class">${ev.label}</span>
         <span class="log-score">(${Math.round((ev.score || 1) * 100)}%)</span>
+        ${ev.videoUrl
+          ? `<button class="log-video-btn" data-url="${ev.videoUrl}">▶ ver vídeo</button>`
+          : (Date.now() - ev.time < 30000
+              ? `<span class="log-video-status">gravando…</span>`
+              : (Date.now() - ev.time < CLIP_MAX_AGE_MS
+                 ? `<span class="log-video-status">sem clip</span>`
+                 : `<span class="log-video-status">clip expirou</span>`))}
       </span>
       ${ev.thumb ? `<img class="log-thumb" src="${ev.thumb}" data-idx="${idx}" alt="snapshot">` : `<div class="log-thumb placeholder">sem img</div>`}`;
     body.appendChild(item);
   });
   body.querySelectorAll('.log-thumb[data-idx]').forEach(el => {
     el.addEventListener('click', () => { const ev = detection.events[Number(el.dataset.idx)]; if (ev?.thumb) showSnapshot(ev.thumb); });
+  });
+  body.querySelectorAll('.log-video-btn[data-url]').forEach(el => {
+    el.addEventListener('click', () => showVideoModal(el.dataset.url));
   });
 }
 function showSnapshot(dataUrl) {
