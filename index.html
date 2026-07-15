@@ -214,6 +214,12 @@ const LOG_FILTER_MATCH = {
   pet:    (ev) => ev.class === 'cat' || ev.class === 'dog',
 };
 
+const CLASS_MIN_SCORE = {
+  person: 0.55, cat: 0.35, dog: 0.40,
+  bird: 0.4, backpack: 0.4, handbag: 0.4,
+  suitcase: 0.4, car: 0.5, motorcycle: 0.5, bicycle: 0.5,
+};
+
 const CLASS_LABELS_PT = {
   person: 'pessoa', cat: 'gato', dog: 'cachorro', car: 'carro',
   motorcycle: 'moto', bicycle: 'bicicleta', bird: 'pássaro',
@@ -976,7 +982,8 @@ function startDetectionLoop(tile) {
         // roda COCO só a cada 5 ticks (500ms) em shipping (pesado); todo tick em residencial
         if (detection.workMode === 'shipping') {
           if (cocoCounter % 5 === 0) {
-            lastCocoPreds = await detection.detector.detect(tile.video, 10, 0.5);
+            lastCocoPreds = await detection.detector.detect(tile.video, 15, 0.3);
+            lastCocoPreds = lastCocoPreds.filter(p => p.score >= (CLASS_MIN_SCORE[p.class] || 0.5));
           }
           cocoCounter++;
 
@@ -996,7 +1003,8 @@ function startDetectionLoop(tile) {
             tile.debugInfo.innerHTML = `pixels em mov: ${result.stats.N}<br>queda acumul: ${(result.stats.dropAvg * 100).toFixed(1)}%<br>histórico: ${tile.fallDetector.history.length} frames`;
           }
         } else {
-          const preds = await detection.detector.detect(tile.video, 10, 0.5);
+          let preds = await detection.detector.detect(tile.video, 15, 0.3);
+          preds = preds.filter(p => p.score >= (CLASS_MIN_SCORE[p.class] || 0.5));
           tile.updateDetections(preds, null);
         }
       }
