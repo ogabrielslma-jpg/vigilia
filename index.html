@@ -40,26 +40,20 @@ html, body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
-
-body {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
+body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
 
 button { font-family: inherit; color: inherit; background: none; border: none; cursor: pointer; }
-input { font-family: inherit; color: inherit; background: none; border: none; outline: none; }
+input, select { font-family: inherit; color: inherit; background: none; border: none; outline: none; }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* --- Mode select --- */
 .mode-select {
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   padding: 3rem 1.5rem;
   max-width: 40rem;
   margin: 0 auto;
 }
-
 .brand {
   font-family: var(--font-mono);
   font-weight: 700;
@@ -67,7 +61,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   letter-spacing: -0.02em;
   line-height: 1;
 }
-
 .brand-sub {
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -76,30 +69,21 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   text-transform: uppercase;
   margin-top: 0.75rem;
 }
-
 .mode-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 4rem;
+  display: flex; flex-direction: column; gap: 0.75rem;
+  margin-top: auto; padding-top: 4rem;
 }
-
 .mode-card {
   padding: 1.75rem 1.5rem;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   text-align: left;
   transition: border-color 0.2s ease, background 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+  display: flex; align-items: center; gap: 1.5rem;
 }
-
 .mode-card:hover, .mode-card:focus-visible { border-color: var(--accent); background: rgba(232,184,76,0.04); }
 .mode-card:focus-visible { outline: none; }
 .mode-card:hover .mode-marker, .mode-card:focus-visible .mode-marker { color: var(--accent); }
-
 .mode-marker {
   font-family: var(--font-mono);
   color: var(--dim);
@@ -107,14 +91,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-weight: 500;
   transition: color 0.2s ease;
 }
-
 .mode-content { flex: 1; }
 .mode-title { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
 .mode-desc { color: var(--muted); font-size: 0.85rem; margin-top: 0.35rem; line-height: 1.5; }
-
 .mode-footer {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
+  margin-top: 2rem; padding-top: 1.5rem;
   border-top: 1px solid var(--border);
   color: var(--muted);
   font-size: 0.7rem;
@@ -125,25 +106,18 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* --- Topbar --- */
 .topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border);
-  gap: 1rem;
-  flex-wrap: wrap;
+  gap: 1rem; flex-wrap: wrap;
 }
-
 .topbar-brand {
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 0.8rem;
   letter-spacing: 0.08em;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  display: flex; align-items: center; gap: 0.75rem;
 }
-
 .status-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--dim);
@@ -154,11 +128,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   box-shadow: 0 0 8px var(--accent);
   animation: pulse 2s ease-in-out infinite;
 }
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 .topbar-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
@@ -176,16 +146,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   white-space: nowrap;
 }
 .btn:hover:not(:disabled) { border-color: var(--border-strong); background: rgba(255,255,255,0.02); }
-
 .btn-primary { border-color: var(--accent); color: var(--accent); }
 .btn-primary:hover:not(:disabled) { background: var(--accent); color: var(--bg); }
-
 .btn-danger { border-color: var(--danger); color: var(--danger); }
 .btn-danger:hover:not(:disabled) { background: var(--danger); color: var(--bg); }
-
 .btn-toggle-on { border-color: var(--detect); color: var(--detect); background: rgba(110,194,232,0.08); }
 .btn-toggle-on:hover:not(:disabled) { background: var(--detect); color: var(--bg); }
-
 .btn-badge {
   display: inline-block;
   margin-left: 0.35rem;
@@ -200,24 +166,16 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* --- Camera mode --- */
 .camera-screen { display: flex; flex-direction: column; min-height: 100dvh; }
-
 .camera-body {
-  flex: 1;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  max-width: 42rem;
-  margin: 0 auto;
-  width: 100%;
+  flex: 1; padding: 1.25rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
+  max-width: 42rem; margin: 0 auto; width: 100%;
 }
-
 .id-block {
   border: 1px solid var(--border);
   padding: 1.25rem 1.5rem;
   background: var(--bg-elevated);
 }
-
 .id-label {
   font-family: var(--font-mono);
   font-size: 0.65rem;
@@ -225,7 +183,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
-
 .id-value {
   font-family: var(--font-mono);
   font-weight: 700;
@@ -235,54 +192,35 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   margin-top: 0.35rem;
   user-select: all;
 }
-
 .id-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
 
 .video-frame {
-  position: relative;
-  aspect-ratio: 4/3;
-  background: #000;
-  border: 1px solid var(--border);
+  position: relative; aspect-ratio: 4/3;
+  background: #000; border: 1px solid var(--border);
   overflow: hidden;
 }
-
-.video-frame video {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
+.video-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .video-overlay {
   position: absolute; inset: 0;
   pointer-events: none;
   padding: 0.75rem 1rem;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  display: flex; align-items: flex-end; justify-content: space-between;
   background: linear-gradient(to top, rgba(0,0,0,0.65), transparent 45%);
   font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.06em;
 }
-
-.live-indicator {
-  display: flex; align-items: center; gap: 0.5rem;
-  color: var(--accent);
-}
+.live-indicator { display: flex; align-items: center; gap: 0.5rem; color: var(--accent); }
 .live-indicator::before {
-  content: '';
-  width: 7px; height: 7px; border-radius: 50%;
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 6px var(--accent);
   animation: pulse 2s ease-in-out infinite;
 }
-
 .controls-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-
 .status-line {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--muted);
+  font-size: 0.75rem; color: var(--muted);
   letter-spacing: 0.03em;
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
@@ -293,19 +231,46 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* --- Panel mode --- */
 .panel-screen { display: flex; flex-direction: column; min-height: 100dvh; }
-
 .panel-body { flex: 1; padding: 1.25rem; }
 
+.settings-bar {
+  display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+.settings-bar > label { display: flex; align-items: center; gap: 0.5rem; color: var(--muted); }
+.settings-bar select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.settings-bar select:focus { border-color: var(--accent); }
+.mode-badge {
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 0.15rem 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+
 .add-camera {
-  display: flex;
-  gap: 0.5rem;
+  display: flex; gap: 0.5rem;
   padding: 0.75rem;
   border: 1px dashed var(--border);
   background: var(--bg-elevated);
   margin-bottom: 1.25rem;
   max-width: 32rem;
 }
-
 .add-camera input {
   flex: 1;
   padding: 0.6rem 0.75rem;
@@ -320,15 +285,13 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .detect-status {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--muted);
+  font-size: 0.7rem; color: var(--muted);
   letter-spacing: 0.05em;
   margin-bottom: 1rem;
   padding-left: 0.5rem;
   border-left: 2px solid var(--border);
 }
-.detect-status.loading { color: var(--detect); border-left-color: var(--detect); }
-.detect-status.ready { color: var(--detect); border-left-color: var(--detect); }
+.detect-status.loading, .detect-status.ready { color: var(--detect); border-left-color: var(--detect); }
 .detect-status.error { color: var(--danger); border-left-color: var(--danger); }
 .detect-status.off { display: none; }
 
@@ -337,7 +300,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
   gap: 0.75rem;
 }
-
 .tile {
   border: 1px solid var(--border);
   background: #000;
@@ -345,23 +307,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   position: relative;
   overflow: hidden;
 }
-
-.tile video {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
+.tile video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tile canvas.detect-overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
   object-fit: cover;
   pointer-events: none;
   z-index: 1;
 }
-
+.tile.alerting { animation: alert-flash 0.5s ease-out; }
+@keyframes alert-flash {
+  0%, 100% { box-shadow: inset 0 0 0 3px transparent; }
+  50% { box-shadow: inset 0 0 0 3px var(--danger); }
+}
 .tile-empty-msg {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -374,7 +332,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   padding: 1rem;
   z-index: 3;
 }
-
 .tile-header {
   position: absolute; top: 0; left: 0; right: 0;
   padding: 0.55rem 0.75rem;
@@ -388,9 +345,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   z-index: 2;
   gap: 0.5rem;
 }
-
 .tile-id { color: var(--text); font-weight: 500; }
-
 .tile-detect-badge {
   color: var(--detect);
   font-size: 0.65rem;
@@ -399,7 +354,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .tile-detect-badge.active { display: inline; }
 .tile-detect-badge.alert { color: var(--danger); }
-
 .tile-footer {
   position: absolute; bottom: 0; left: 0; right: 0;
   padding: 0.55rem 0.75rem;
@@ -412,7 +366,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   letter-spacing: 0.05em;
   z-index: 2;
 }
-
 .tile-live {
   display: none;
   align-items: center;
@@ -421,15 +374,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .tile-live.active { display: inline-flex; }
 .tile-live::before {
-  content: '';
-  width: 5px; height: 5px; border-radius: 50%;
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 5px var(--accent);
   animation: pulse 2s ease-in-out infinite;
 }
-
 .tile-time { color: var(--text); }
-
 .tile-remove {
   color: var(--muted);
   font-family: var(--font-mono);
@@ -459,31 +409,24 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   line-height: 1.7;
 }
 
-/* --- Modal (log de detecções) --- */
+/* --- Modal --- */
 .modal-backdrop {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: var(--bg-modal);
   backdrop-filter: blur(6px);
   z-index: 100;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  align-items: flex-start; justify-content: center;
   padding: 2rem 1rem;
   overflow-y: auto;
 }
-
 .modal {
-  width: 100%;
-  max-width: 46rem;
+  width: 100%; max-width: 46rem;
   border: 1px solid var(--border-strong);
   background: var(--bg);
 }
-
 .modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border);
   font-family: var(--font-mono);
@@ -491,13 +434,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   letter-spacing: 0.08em;
   font-weight: 700;
 }
-
 .modal-header-actions { display: flex; gap: 0.5rem; }
-
-.modal-body {
-  max-height: 70vh;
-  overflow-y: auto;
-}
+.modal-body { max-height: 70vh; overflow-y: auto; }
 
 .log-empty {
   padding: 3rem 1.5rem;
@@ -507,12 +445,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 0.8rem;
   letter-spacing: 0.05em;
 }
-
 .log-item {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 1rem;
-  align-items: center;
+  gap: 1rem; align-items: center;
   padding: 0.85rem 1.5rem;
   border-bottom: 1px solid var(--border);
   font-family: var(--font-mono);
@@ -520,16 +456,13 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   transition: background 0.15s ease;
 }
 .log-item:hover { background: rgba(255,255,255,0.02); }
-
 .log-time { color: var(--muted); font-weight: 500; }
 .log-detail { color: var(--text); }
 .log-detail .log-class { color: var(--danger); font-weight: 600; }
 .log-detail .log-cam { color: var(--accent); }
 .log-detail .log-score { color: var(--muted); font-size: 0.75rem; }
-
 .log-thumb {
-  width: 60px;
-  height: 45px;
+  width: 60px; height: 45px;
   object-fit: cover;
   border: 1px solid var(--border);
   cursor: pointer;
@@ -543,23 +476,15 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 0.6rem;
   letter-spacing: 0.05em;
 }
-
 .snapshot-viewer {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: rgba(0,0,0,0.9);
   z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   padding: 2rem;
   cursor: zoom-out;
 }
-.snapshot-viewer img {
-  max-width: 100%;
-  max-height: 100%;
-  border: 1px solid var(--border-strong);
-}
+.snapshot-viewer img { max-width: 100%; max-height: 100%; border: 1px solid var(--border-strong); }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -571,80 +496,70 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 <script>
 // ============================================================
-// VIGÍLIA — painel de vigilância com detecção de objetos
+// VIGÍLIA v3 — modo residencial + modo transportadora (queda)
 // ============================================================
 
 const app = document.getElementById('app');
 
 const state = {
-  mode: null,
+  mode: null, // 'camera' | 'panel'
   peer: null,
   myId: null,
   localStream: null,
   currentFacing: 'environment',
   activeCalls: new Set(),
-  cameras: new Map(), // peerId -> tile
+  cameras: new Map(),
   clockInt: null,
 };
 
-// --- Detection module ---
 const detection = {
   detector: null,
   loading: false,
   enabled: false,
   alertsEnabled: true,
   audioCtx: null,
-  cooldowns: new Map(), // peerId -> last alert timestamp
-  events: [], // last events (max 50)
+  cooldowns: new Map(),
+  events: [],
+  workMode: 'residential', // 'residential' | 'shipping'
+  sensitivity: 'medium',   // 'low' | 'medium' | 'high'
   targetClasses: new Set(['person', 'cat', 'dog']),
   alertClasses: new Set(['person']),
 };
 
 const CLASS_LABELS_PT = {
-  person: 'pessoa',
-  cat: 'gato',
-  dog: 'cachorro',
-  car: 'carro',
-  motorcycle: 'moto',
-  bicycle: 'bicicleta',
-  bird: 'pássaro',
-  backpack: 'mochila',
-  handbag: 'bolsa',
-  suitcase: 'mala',
-  'cell phone': 'celular',
-  laptop: 'notebook',
+  person: 'pessoa', cat: 'gato', dog: 'cachorro', car: 'carro',
+  motorcycle: 'moto', bicycle: 'bicicleta', bird: 'pássaro',
+  backpack: 'mochila', handbag: 'bolsa', suitcase: 'mala',
+  'cell phone': 'celular', laptop: 'notebook',
+};
+
+// --- Parâmetros de detecção de queda (calibráveis via sensibilidade) ---
+const SENS_PROFILES = {
+  low:    { motionThreshold: 40, minBlobCells: 12, minFallFrames: 5, minDy: 0.06, matchDist: 0.15 },
+  medium: { motionThreshold: 30, minBlobCells: 8,  minFallFrames: 4, minDy: 0.04, matchDist: 0.20 },
+  high:   { motionThreshold: 22, minBlobCells: 5,  minFallFrames: 3, minDy: 0.025, matchDist: 0.25 },
 };
 
 // --- utils ---
 function friendlyId() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let s = '';
-  for (let i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  let s = ''; for (let i = 0; i < 4; i++) s += chars[Math.floor(Math.random() * chars.length)];
   return 'vg-' + s;
 }
-
 function storage(key, val) {
   try {
     if (val === undefined) return JSON.parse(localStorage.getItem(key) || 'null');
     localStorage.setItem(key, JSON.stringify(val));
-  } catch { /* fallback: em memória apenas */ }
+  } catch {}
 }
-
-function fmtTime(d = new Date()) {
-  return d.toLocaleTimeString('pt-BR', { hour12: false });
-}
-
-function fmtDateTime(d = new Date()) {
-  return d.toLocaleString('pt-BR', { hour12: false });
-}
+function fmtTime(d = new Date()) { return d.toLocaleTimeString('pt-BR', { hour12: false }); }
+function fmtDateTime(d = new Date()) { return d.toLocaleString('pt-BR', { hour12: false }); }
 
 function createEmptyStream() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 2; canvas.height = 2;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, 2, 2);
-  return canvas.captureStream(1);
+  const c = document.createElement('canvas');
+  c.width = 2; c.height = 2;
+  c.getContext('2d').fillRect(0, 0, 2, 2);
+  return c.captureStream(1);
 }
 
 // ============ MODE SELECT ============
@@ -653,7 +568,7 @@ function renderModeSelect() {
     <div class="mode-select">
       <div>
         <div class="brand">VIGÍLIA</div>
-        <div class="brand-sub">painel de vigilância residencial</div>
+        <div class="brand-sub">painel de vigilância</div>
       </div>
       <div class="mode-options">
         <button class="mode-card" data-mode="camera">
@@ -672,7 +587,7 @@ function renderModeSelect() {
         </button>
       </div>
       <div class="mode-footer">
-        Vídeo peer-to-peer. Detecção de objetos processada localmente no seu computador.
+        Vídeo peer-to-peer. Detecção processada localmente no seu computador.
       </div>
     </div>
   `;
@@ -680,14 +595,12 @@ function renderModeSelect() {
     el.addEventListener('click', () => selectMode(el.dataset.mode));
   });
 }
-
 function selectMode(mode) {
   state.mode = mode;
-  if (mode === 'camera') renderCamera();
-  else renderPanel();
+  if (mode === 'camera') renderCamera(); else renderPanel();
 }
 
-// ============ CAMERA MODE ============
+// ============ CAMERA MODE (inalterado) ============
 function renderCamera() {
   app.innerHTML = `
     <div class="camera-screen">
@@ -723,33 +636,28 @@ function renderCamera() {
       </div>
     </div>
   `;
-
   document.getElementById('back-btn').addEventListener('click', backToMenu);
   document.getElementById('flip-cam').addEventListener('click', flipCamera);
   document.getElementById('stop-cam').addEventListener('click', backToMenu);
   document.getElementById('copy-id').addEventListener('click', copyId);
-
   const clockEl = document.getElementById('local-time');
   state.clockInt = setInterval(() => { if (clockEl) clockEl.textContent = fmtTime(); }, 1000);
   clockEl.textContent = fmtTime();
-
   startCameraFlow();
 }
-
 async function startCameraFlow() {
   try {
     setCamStatus('Solicitando acesso à câmera…');
     await startLocalCamera();
-    setCamStatus('Câmera ativa. Conectando ao serviço de sinalização…');
+    setCamStatus('Câmera ativa. Conectando…');
     initPeerAsCamera();
   } catch (err) {
     let msg = err.message || String(err);
-    if (err.name === 'NotAllowedError') msg = 'Permissão de câmera negada. Autorize e recarregue a página.';
-    if (err.name === 'NotFoundError') msg = 'Nenhuma câmera encontrada neste dispositivo.';
+    if (err.name === 'NotAllowedError') msg = 'Permissão negada. Autorize e recarregue.';
+    if (err.name === 'NotFoundError') msg = 'Nenhuma câmera encontrada.';
     setCamStatus(msg, 'error');
   }
 }
-
 async function startLocalCamera() {
   if (state.localStream) state.localStream.getTracks().forEach(t => t.stop());
   state.localStream = await navigator.mediaDevices.getUserMedia({
@@ -759,7 +667,6 @@ async function startLocalCamera() {
   const v = document.getElementById('local-video');
   if (v) v.srcObject = state.localStream;
 }
-
 async function flipCamera() {
   state.currentFacing = state.currentFacing === 'environment' ? 'user' : 'environment';
   try {
@@ -770,21 +677,15 @@ async function flipCamera() {
       if (sender && newTrack) sender.replaceTrack(newTrack);
     });
     setCamStatus('Câmera virada.', 'ok');
-  } catch (err) {
-    setCamStatus('Erro ao virar câmera: ' + err.message, 'error');
-  }
+  } catch (err) { setCamStatus('Erro: ' + err.message, 'error'); }
 }
-
 function initPeerAsCamera() {
   const savedId = storage('vigilia:my-id');
-  const desiredId = savedId || friendlyId();
-  connectAsCamera(desiredId);
+  connectAsCamera(savedId || friendlyId());
 }
-
 function connectAsCamera(id) {
   try { state.peer && state.peer.destroy(); } catch {}
   state.peer = new Peer(id);
-
   state.peer.on('open', (openedId) => {
     state.myId = openedId;
     storage('vigilia:my-id', openedId);
@@ -793,52 +694,38 @@ function connectAsCamera(id) {
     const copy = document.getElementById('copy-id');
     if (copy) copy.disabled = false;
     document.getElementById('cam-status-dot')?.classList.add('live');
-    setCamStatus('Aguardando painel se conectar…');
+    setCamStatus('Aguardando painel…');
   });
-
   state.peer.on('call', (call) => {
     call.answer(state.localStream);
     state.activeCalls.add(call);
-    setCamStatus(`Painel conectado (${state.activeCalls.size} viewer${state.activeCalls.size > 1 ? 's' : ''}).`, 'ok');
+    setCamStatus(`Painel conectado (${state.activeCalls.size}).`, 'ok');
     call.on('close', () => {
       state.activeCalls.delete(call);
-      if (state.activeCalls.size === 0) setCamStatus('Aguardando painel se conectar…');
-      else setCamStatus(`${state.activeCalls.size} viewer${state.activeCalls.size > 1 ? 's' : ''} conectado(s).`, 'ok');
+      setCamStatus(state.activeCalls.size === 0 ? 'Aguardando painel…' : `${state.activeCalls.size} viewer(s).`, state.activeCalls.size ? 'ok' : '');
     });
-    call.on('error', (e) => console.warn('Call error', e));
+    call.on('error', (e) => console.warn(e));
   });
-
   state.peer.on('error', (err) => {
-    console.error('Peer error', err);
     if (err.type === 'unavailable-id') {
       const newId = friendlyId();
       storage('vigilia:my-id', newId);
-      setCamStatus('ID em uso, gerando outro…');
       setTimeout(() => connectAsCamera(newId), 500);
-    } else if (err.type === 'network' || err.type === 'disconnected' || err.type === 'server-error') {
-      setCamStatus('Sem conexão com sinalização. Tentando reconectar…', 'error');
+    } else if (['network','disconnected','server-error'].includes(err.type)) {
+      setCamStatus('Sem conexão. Reconectando…', 'error');
       setTimeout(() => connectAsCamera(state.myId || friendlyId()), 3000);
-    } else {
-      setCamStatus('Erro: ' + err.type, 'error');
-    }
+    } else setCamStatus('Erro: ' + err.type, 'error');
   });
-
   state.peer.on('disconnected', () => {
-    setCamStatus('Desconectado. Reconectando…', 'error');
+    setCamStatus('Reconectando…', 'error');
     try { state.peer.reconnect(); } catch {}
   });
 }
-
 async function copyId() {
   if (!state.myId) return;
-  try {
-    await navigator.clipboard.writeText(state.myId);
-    setCamStatus('ID copiado para a área de transferência.', 'ok');
-  } catch {
-    setCamStatus('Copie manualmente: ' + state.myId);
-  }
+  try { await navigator.clipboard.writeText(state.myId); setCamStatus('ID copiado.', 'ok'); }
+  catch { setCamStatus('Copie: ' + state.myId); }
 }
-
 function setCamStatus(msg, kind) {
   const el = document.getElementById('cam-status');
   if (!el) return;
@@ -848,15 +735,15 @@ function setCamStatus(msg, kind) {
 
 // ============ PANEL MODE ============
 function renderPanel() {
-  // load saved settings
   const savedDetect = storage('vigilia:detect-on');
   const savedAlerts = storage('vigilia:alerts-on');
+  const savedWorkMode = storage('vigilia:work-mode');
+  const savedSens = storage('vigilia:sensitivity');
   detection.enabled = savedDetect === true;
-  detection.alertsEnabled = savedAlerts !== false; // default true
-
-  // load saved events
-  const savedEvents = storage('vigilia:events') || [];
-  detection.events = savedEvents;
+  detection.alertsEnabled = savedAlerts !== false;
+  detection.workMode = savedWorkMode || 'residential';
+  detection.sensitivity = savedSens || 'medium';
+  detection.events = storage('vigilia:events') || [];
 
   app.innerHTML = `
     <div class="panel-screen">
@@ -864,6 +751,7 @@ function renderPanel() {
         <div class="topbar-brand">
           <span class="status-dot" id="panel-status-dot"></span>
           <span>VIGÍLIA · PAINEL</span>
+          <span class="mode-badge" id="work-mode-badge"></span>
         </div>
         <div class="topbar-actions">
           <button class="btn" id="toggle-detect">Detecção OFF</button>
@@ -873,6 +761,21 @@ function renderPanel() {
         </div>
       </div>
       <div class="panel-body">
+        <div class="settings-bar">
+          <label>Modo:
+            <select id="work-mode-select">
+              <option value="residential">Residencial (pessoa/pet)</option>
+              <option value="shipping">Transportadora (queda de objeto)</option>
+            </select>
+          </label>
+          <label id="sens-label" style="display:none">Sensibilidade:
+            <select id="sensitivity-select">
+              <option value="low">Baixa (menos falsos alarmes)</option>
+              <option value="medium">Média</option>
+              <option value="high">Alta (detecta mais)</option>
+            </select>
+          </label>
+        </div>
         <div class="add-camera">
           <input id="add-input" placeholder="cole aqui o ID (ex: vg-3F7B)" autocapitalize="off" autocomplete="off" spellcheck="false">
           <button class="btn btn-primary" id="add-btn">Adicionar</button>
@@ -885,20 +788,50 @@ function renderPanel() {
 
   document.getElementById('back-btn').addEventListener('click', backToMenu);
   document.getElementById('add-btn').addEventListener('click', onAddCamera);
-  document.getElementById('add-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') onAddCamera();
-  });
+  document.getElementById('add-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') onAddCamera(); });
   document.getElementById('toggle-detect').addEventListener('click', toggleDetection);
   document.getElementById('toggle-alerts').addEventListener('click', toggleAlerts);
   document.getElementById('show-log').addEventListener('click', showLog);
 
+  const wmSel = document.getElementById('work-mode-select');
+  wmSel.value = detection.workMode;
+  wmSel.addEventListener('change', onWorkModeChange);
+
+  const sensSel = document.getElementById('sensitivity-select');
+  sensSel.value = detection.sensitivity;
+  sensSel.addEventListener('change', onSensitivityChange);
+
+  updateWorkModeUI();
   updateDetectionButtons();
   updateLogBadge();
   renderGridEmpty();
   initPeerAsPanel();
 
-  // if detection was on, load detector
   if (detection.enabled) initDetector();
+}
+
+function updateWorkModeUI() {
+  const badge = document.getElementById('work-mode-badge');
+  const sensLabel = document.getElementById('sens-label');
+  if (badge) badge.textContent = detection.workMode === 'shipping' ? 'Transportadora' : 'Residencial';
+  if (sensLabel) sensLabel.style.display = detection.workMode === 'shipping' ? 'flex' : 'none';
+}
+
+function onWorkModeChange(e) {
+  detection.workMode = e.target.value;
+  storage('vigilia:work-mode', detection.workMode);
+  updateWorkModeUI();
+  // reset fall detectors for all tiles
+  state.cameras.forEach(tile => { if (tile.fallDetector) tile.fallDetector.reset(); });
+  setDetectStatus(detection.enabled
+    ? (detection.workMode === 'shipping' ? 'Modo transportadora ativo — detectando quedas.' : 'Modo residencial ativo — pessoa/cachorro/gato.')
+    : '', detection.enabled ? 'ready' : 'off');
+}
+
+function onSensitivityChange(e) {
+  detection.sensitivity = e.target.value;
+  storage('vigilia:sensitivity', detection.sensitivity);
+  state.cameras.forEach(tile => { if (tile.fallDetector) tile.fallDetector.reset(); });
 }
 
 function onAddCamera() {
@@ -912,67 +845,39 @@ function onAddCamera() {
 function initPeerAsPanel() {
   try { state.peer && state.peer.destroy(); } catch {}
   state.peer = new Peer();
-
   state.peer.on('open', () => {
     document.getElementById('panel-status-dot')?.classList.add('live');
-    const saved = storage('vigilia:panel-cams') || [];
-    saved.forEach(id => connectToCamera(id));
+    (storage('vigilia:panel-cams') || []).forEach(id => connectToCamera(id));
   });
-
-  state.peer.on('error', (err) => {
-    console.error('Panel peer error', err);
-  });
-
-  state.peer.on('disconnected', () => {
-    try { state.peer.reconnect(); } catch {}
-  });
+  state.peer.on('error', (err) => console.error(err));
+  state.peer.on('disconnected', () => { try { state.peer.reconnect(); } catch {} });
 }
 
-function persistCameras() {
-  storage('vigilia:panel-cams', Array.from(state.cameras.keys()));
-}
+function persistCameras() { storage('vigilia:panel-cams', Array.from(state.cameras.keys())); }
 
 function connectToCamera(peerId) {
   peerId = peerId.trim();
-  if (!peerId) return;
-  if (state.cameras.has(peerId)) return;
-
+  if (!peerId || state.cameras.has(peerId)) return;
   const tile = createTile(peerId);
-  const emptyEl = document.getElementById('grid-empty');
-  if (emptyEl) emptyEl.remove();
+  document.getElementById('grid-empty')?.remove();
   document.getElementById('grid').appendChild(tile.wrapper);
   state.cameras.set(peerId, tile);
   persistCameras();
 
-  const emptyStream = createEmptyStream();
-  const call = state.peer.call(peerId, emptyStream);
-  if (!call) {
-    tile.setState('não foi possível iniciar chamada');
-    return;
-  }
+  const call = state.peer.call(peerId, createEmptyStream());
+  if (!call) { tile.setState('não foi possível iniciar chamada'); return; }
   tile.call = call;
 
-  const timeout = setTimeout(() => {
-    if (!tile.gotStream) tile.setState('sem resposta — verifique o ID');
-  }, 15000);
-
+  const timeout = setTimeout(() => { if (!tile.gotStream) tile.setState('sem resposta — verifique o ID'); }, 15000);
   call.on('stream', (remoteStream) => {
     clearTimeout(timeout);
     tile.gotStream = true;
     tile.video.srcObject = remoteStream;
     tile.setLive();
-    // start detection loop if enabled
     startDetectionLoop(tile);
   });
-
-  call.on('close', () => {
-    tile.setState('câmera desconectada');
-  });
-
-  call.on('error', (e) => {
-    console.warn('Call err', e);
-    tile.setState('erro de conexão');
-  });
+  call.on('close', () => tile.setState('câmera desconectada'));
+  call.on('error', () => tile.setState('erro de conexão'));
 }
 
 function createTile(peerId) {
@@ -980,9 +885,7 @@ function createTile(peerId) {
   wrapper.className = 'tile';
 
   const video = document.createElement('video');
-  video.autoplay = true;
-  video.muted = true;
-  video.playsInline = true;
+  video.autoplay = true; video.muted = true; video.playsInline = true;
   wrapper.appendChild(video);
 
   const canvas = document.createElement('canvas');
@@ -1008,10 +911,7 @@ function createTile(peerId) {
 
   const footer = document.createElement('div');
   footer.className = 'tile-footer';
-  footer.innerHTML = `
-    <span class="tile-live">AO VIVO</span>
-    <span class="tile-time">--:--:--</span>
-  `;
+  footer.innerHTML = `<span class="tile-live">AO VIVO</span><span class="tile-time">--:--:--</span>`;
   wrapper.appendChild(footer);
 
   const timeEl = footer.querySelector('.tile-time');
@@ -1030,26 +930,44 @@ function createTile(peerId) {
   });
 
   const tile = {
-    peerId,
-    wrapper, video, canvas,
+    peerId, wrapper, video, canvas,
     gotStream: false, call: null,
     detectionTimeout: null,
-    setLive() {
-      emptyMsg.style.display = 'none';
-      liveEl.classList.add('active');
-    },
+    fallDetector: null,
+    lastPersonBoxes: [], // último resultado COCO
+    setLive() { emptyMsg.style.display = 'none'; liveEl.classList.add('active'); },
     setState(msg) {
       liveEl.classList.remove('active');
       emptyMsg.textContent = msg;
       emptyMsg.style.display = 'flex';
     },
-    updateDetections(predictions) {
-      drawBoxes(canvas, predictions);
-      const relevant = predictions.filter(p => detection.targetClasses.has(p.class));
-      updateBadge(badgeEl, relevant);
-      // alertas
-      const alertHits = relevant.filter(p => detection.alertClasses.has(p.class));
-      if (alertHits.length > 0) triggerAlert(tile, alertHits[0]);
+    updateDetections(cocoPreds, fallEvents) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (detection.workMode === 'residential') {
+        // desenha classes-alvo
+        cocoPreds.forEach(p => {
+          if (!detection.targetClasses.has(p.class)) return;
+          drawBox(ctx, canvas, p.bbox, CLASS_LABELS_PT[p.class] || p.class, p.score, detection.alertClasses.has(p.class));
+        });
+        const relevant = cocoPreds.filter(p => detection.targetClasses.has(p.class));
+        updateBadge(badgeEl, relevant.map(p => ({ label: CLASS_LABELS_PT[p.class] || p.class, alert: detection.alertClasses.has(p.class) })));
+        const alertHits = relevant.filter(p => detection.alertClasses.has(p.class));
+        if (alertHits.length > 0) triggerAlert(tile, { class: alertHits[0].class, label: CLASS_LABELS_PT[alertHits[0].class] || alertHits[0].class, score: alertHits[0].score });
+      } else {
+        // modo transportadora — só desenha detecções de queda
+        fallEvents.forEach(ev => {
+          drawFallMarker(ctx, canvas, ev.bbox);
+        });
+        if (fallEvents.length > 0) {
+          updateBadge(badgeEl, [{ label: 'QUEDA', alert: true }]);
+          triggerAlert(tile, { class: 'fall', label: 'queda detectada', score: fallEvents[0].confidence });
+          flashTile(wrapper);
+        } else {
+          updateBadge(badgeEl, []);
+        }
+      }
     },
     clearDetections() {
       const ctx = canvas.getContext('2d');
@@ -1073,7 +991,6 @@ function createTile(peerId) {
     tile.destroy();
     if (state.cameras.size === 0) renderGridEmpty();
   });
-
   wrapper.addEventListener('dblclick', () => {
     if (document.fullscreenElement === wrapper) document.exitFullscreen();
     else wrapper.requestFullscreen?.().catch(() => {});
@@ -1086,20 +1003,203 @@ function renderGridEmpty() {
   const grid = document.getElementById('grid');
   if (!grid || grid.children.length > 0) return;
   const el = document.createElement('div');
-  el.className = 'grid-empty';
-  el.id = 'grid-empty';
+  el.className = 'grid-empty'; el.id = 'grid-empty';
   el.innerHTML = `
     NENHUMA CÂMERA ADICIONADA
     <span class="empty-hint">
       Abra este mesmo endereço no iPhone (Safari), escolha "Ser câmera",<br>
       copie o ID que aparece lá e cole no campo acima.
-    </span>
-  `;
+    </span>`;
   grid.appendChild(el);
 }
 
-// ============ DETECÇÃO DE OBJETOS ============
+// ============ FALL DETECTOR (modo transportadora) ============
+class FallDetector {
+  constructor() {
+    this.workW = 160;
+    this.workH = 120;
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = this.workW;
+    this.canvas.height = this.workH;
+    this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+    this.prevGray = null;
+    this.tracks = []; // {id, cx, cy, area, trail: [{t, cx, cy}], lastSeen}
+    this.nextId = 1;
+  }
+  reset() {
+    this.prevGray = null;
+    this.tracks = [];
+  }
+  analyze(video, personBoxes /* [{x,y,w,h}] normalized 0-1 */) {
+    if (!video.videoWidth || video.readyState < 2) return [];
+    const w = this.workW, h = this.workH;
+    this.ctx.drawImage(video, 0, 0, w, h);
+    const img = this.ctx.getImageData(0, 0, w, h).data;
 
+    // grayscale
+    const gray = new Uint8ClampedArray(w * h);
+    for (let i = 0, j = 0; i < img.length; i += 4, j++) {
+      gray[j] = (img[i] * 0.299 + img[i+1] * 0.587 + img[i+2] * 0.114) | 0;
+    }
+
+    if (!this.prevGray) { this.prevGray = gray; return []; }
+
+    const profile = SENS_PROFILES[detection.sensitivity];
+
+    // frame diff
+    const diff = new Uint8Array(w * h);
+    for (let i = 0; i < gray.length; i++) {
+      diff[i] = Math.abs(gray[i] - this.prevGray[i]) > profile.motionThreshold ? 1 : 0;
+    }
+    this.prevGray = gray;
+
+    // mask out person areas
+    for (const box of personBoxes) {
+      const x0 = Math.max(0, Math.floor(box.x * w));
+      const y0 = Math.max(0, Math.floor(box.y * h));
+      const x1 = Math.min(w, Math.ceil((box.x + box.w) * w));
+      const y1 = Math.min(h, Math.ceil((box.y + box.h) * h));
+      // expandir 20% pra margem
+      const expandX = Math.floor((x1 - x0) * 0.2);
+      const expandY = Math.floor((y1 - y0) * 0.2);
+      for (let y = Math.max(0, y0-expandY); y < Math.min(h, y1+expandY); y++) {
+        for (let x = Math.max(0, x0-expandX); x < Math.min(w, x1+expandX); x++) {
+          diff[y * w + x] = 0;
+        }
+      }
+    }
+
+    // grid-based blob detection (cells 8x8)
+    const CELL = 8;
+    const cellsW = Math.ceil(w / CELL);
+    const cellsH = Math.ceil(h / CELL);
+    const cellCount = new Uint16Array(cellsW * cellsH);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (diff[y * w + x]) {
+          cellCount[Math.floor(y / CELL) * cellsW + Math.floor(x / CELL)]++;
+        }
+      }
+    }
+    const CELL_MIN_ACTIVITY = 20; // pelo menos 20 pixels ativos numa célula 8x8
+    const activeCells = new Uint8Array(cellsW * cellsH);
+    for (let i = 0; i < cellCount.length; i++) {
+      if (cellCount[i] >= CELL_MIN_ACTIVITY) activeCells[i] = 1;
+    }
+
+    // connected components (flood fill nas células)
+    const visited = new Uint8Array(cellsW * cellsH);
+    const blobs = [];
+    for (let cy = 0; cy < cellsH; cy++) {
+      for (let cx = 0; cx < cellsW; cx++) {
+        const idx = cy * cellsW + cx;
+        if (!activeCells[idx] || visited[idx]) continue;
+        // BFS
+        const q = [[cx, cy]];
+        visited[idx] = 1;
+        let sx = 0, sy = 0, count = 0, minX = cx, maxX = cx, minY = cy, maxY = cy;
+        while (q.length) {
+          const [x, y] = q.shift();
+          sx += x; sy += y; count++;
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+          for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+            const nx = x+dx, ny = y+dy;
+            if (nx < 0 || nx >= cellsW || ny < 0 || ny >= cellsH) continue;
+            const ni = ny * cellsW + nx;
+            if (activeCells[ni] && !visited[ni]) {
+              visited[ni] = 1;
+              q.push([nx, ny]);
+            }
+          }
+        }
+        if (count >= profile.minBlobCells) {
+          blobs.push({
+            cx: (sx / count) * CELL / w, // 0-1 normalized
+            cy: (sy / count) * CELL / h,
+            area: count,
+            bbox: {
+              x: (minX * CELL) / w,
+              y: (minY * CELL) / h,
+              w: ((maxX - minX + 1) * CELL) / w,
+              h: ((maxY - minY + 1) * CELL) / h,
+            },
+          });
+        }
+      }
+    }
+
+    // match blobs to tracks
+    const now = performance.now();
+    const usedBlobs = new Set();
+    for (const track of this.tracks) {
+      let bestIdx = -1, bestDist = profile.matchDist;
+      for (let i = 0; i < blobs.length; i++) {
+        if (usedBlobs.has(i)) continue;
+        const d = Math.hypot(blobs[i].cx - track.cx, blobs[i].cy - track.cy);
+        if (d < bestDist) { bestDist = d; bestIdx = i; }
+      }
+      if (bestIdx >= 0) {
+        const b = blobs[bestIdx];
+        usedBlobs.add(bestIdx);
+        track.trail.push({ t: now, cx: b.cx, cy: b.cy });
+        if (track.trail.length > 15) track.trail.shift();
+        track.cx = b.cx; track.cy = b.cy; track.area = b.area; track.bbox = b.bbox;
+        track.lastSeen = now;
+      }
+    }
+    // new blobs → new tracks
+    for (let i = 0; i < blobs.length; i++) {
+      if (usedBlobs.has(i)) continue;
+      const b = blobs[i];
+      this.tracks.push({
+        id: this.nextId++, cx: b.cx, cy: b.cy, area: b.area, bbox: b.bbox,
+        trail: [{ t: now, cx: b.cx, cy: b.cy }], lastSeen: now, alerted: false,
+      });
+    }
+    // remove stale tracks (não vistos há mais de 1s)
+    this.tracks = this.tracks.filter(t => now - t.lastSeen < 1000);
+
+    // check falls
+    const falls = [];
+    for (const track of this.tracks) {
+      if (track.alerted) continue;
+      if (track.trail.length < profile.minFallFrames) continue;
+
+      const recent = track.trail.slice(-profile.minFallFrames);
+      let totalDy = 0;
+      let consecDown = 0;
+      let dySequence = [];
+      for (let i = 1; i < recent.length; i++) {
+        const dy = recent[i].cy - recent[i-1].cy;
+        dySequence.push(dy);
+        if (dy > 0.005) consecDown++;
+        totalDy += dy;
+      }
+      // aceleração positiva: dy crescente ao longo do tempo
+      let accelerating = 0;
+      for (let i = 1; i < dySequence.length; i++) {
+        if (dySequence[i] > dySequence[i-1] * 0.9) accelerating++;
+      }
+      const isFall = (totalDy >= profile.minDy)
+                  && (consecDown >= profile.minFallFrames - 1)
+                  && (accelerating >= Math.floor(dySequence.length * 0.5));
+
+      if (isFall) {
+        track.alerted = true;
+        falls.push({
+          trackId: track.id,
+          bbox: track.bbox,
+          totalDy,
+          confidence: Math.min(1, totalDy / 0.15), // rough confidence
+        });
+      }
+    }
+    return falls;
+  }
+}
+
+// ============ Detecção — orquestração ============
 async function initDetector() {
   if (detection.detector || detection.loading) return;
   detection.loading = true;
@@ -1107,20 +1207,18 @@ async function initDetector() {
   try {
     if (tf.setBackend) await tf.setBackend('webgl');
     detection.detector = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
-    setDetectStatus('Modelo carregado. Detectando pessoa, cachorro e gato.', 'ready');
+    setDetectStatus(detection.workMode === 'shipping'
+      ? 'Modo transportadora ativo — detectando quedas (COCO usado só para filtrar pessoas).'
+      : 'Modo residencial ativo — pessoa/cachorro/gato.', 'ready');
   } catch (err) {
-    console.error('Falha ao carregar detector:', err);
+    console.error(err);
     setDetectStatus('Falha ao carregar detector: ' + err.message, 'error');
-    detection.enabled = false;
-    updateDetectionButtons();
-  } finally {
-    detection.loading = false;
-  }
+    detection.enabled = false; updateDetectionButtons();
+  } finally { detection.loading = false; }
 }
 
 function setDetectStatus(msg, kind) {
-  const el = document.getElementById('detect-status');
-  if (!el) return;
+  const el = document.getElementById('detect-status'); if (!el) return;
   el.textContent = msg;
   el.className = 'detect-status ' + (kind || '');
 }
@@ -1129,191 +1227,174 @@ function toggleDetection() {
   detection.enabled = !detection.enabled;
   storage('vigilia:detect-on', detection.enabled);
   updateDetectionButtons();
-
-  // create audio context on first click (user gesture)
   if (detection.enabled && !detection.audioCtx) {
     try { detection.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
   }
-
   if (detection.enabled) {
     initDetector();
-    // start loops for all connected tiles
-    state.cameras.forEach(tile => {
-      if (tile.gotStream) startDetectionLoop(tile);
-    });
+    state.cameras.forEach(tile => { if (tile.gotStream) startDetectionLoop(tile); });
   } else {
     setDetectStatus('', 'off');
     state.cameras.forEach(tile => tile.clearDetections());
   }
 }
-
 function toggleAlerts() {
   detection.alertsEnabled = !detection.alertsEnabled;
   storage('vigilia:alerts-on', detection.alertsEnabled);
   updateDetectionButtons();
 }
-
 function updateDetectionButtons() {
-  const detectBtn = document.getElementById('toggle-detect');
-  const alertsBtn = document.getElementById('toggle-alerts');
-  if (detectBtn) {
-    detectBtn.textContent = detection.enabled ? 'Detecção ON' : 'Detecção OFF';
-    detectBtn.classList.toggle('btn-toggle-on', detection.enabled);
-  }
-  if (alertsBtn) {
-    alertsBtn.textContent = detection.alertsEnabled ? 'Som ON' : 'Som OFF';
-    alertsBtn.classList.toggle('btn-toggle-on', detection.alertsEnabled);
-  }
+  const d = document.getElementById('toggle-detect');
+  const a = document.getElementById('toggle-alerts');
+  if (d) { d.textContent = detection.enabled ? 'Detecção ON' : 'Detecção OFF'; d.classList.toggle('btn-toggle-on', detection.enabled); }
+  if (a) { a.textContent = detection.alertsEnabled ? 'Som ON' : 'Som OFF'; a.classList.toggle('btn-toggle-on', detection.alertsEnabled); }
 }
 
 function startDetectionLoop(tile) {
   if (tile.detectionTimeout) clearTimeout(tile.detectionTimeout);
-
   const tick = async () => {
-    if (!state.cameras.has(tile.peerId)) return; // removed
+    if (!state.cameras.has(tile.peerId)) return;
     try {
       if (detection.enabled && detection.detector && tile.video.readyState >= 2) {
-        const predictions = await detection.detector.detect(tile.video, 10, 0.5);
-        tile.updateDetections(predictions);
+        // sempre roda COCO
+        const preds = await detection.detector.detect(tile.video, 10, 0.5);
+
+        let falls = [];
+        if (detection.workMode === 'shipping') {
+          if (!tile.fallDetector) tile.fallDetector = new FallDetector();
+          const persons = preds.filter(p => p.class === 'person').map(p => ({
+            x: p.bbox[0] / tile.video.videoWidth,
+            y: p.bbox[1] / tile.video.videoHeight,
+            w: p.bbox[2] / tile.video.videoWidth,
+            h: p.bbox[3] / tile.video.videoHeight,
+          }));
+          falls = tile.fallDetector.analyze(tile.video, persons);
+        }
+        tile.updateDetections(preds, falls);
       }
-    } catch (err) {
-      console.warn('detect err', err);
-    }
-    tile.detectionTimeout = setTimeout(tick, 800);
+    } catch (err) { console.warn('loop err', err); }
+    // 200ms em shipping (5fps pra pegar queda rápida), 800ms em residencial
+    const interval = detection.workMode === 'shipping' ? 200 : 800;
+    tile.detectionTimeout = setTimeout(tick, interval);
   };
   tick();
 }
 
-function drawBoxes(canvas, predictions) {
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  predictions.forEach(pred => {
-    if (!detection.targetClasses.has(pred.class)) return;
-    const [x, y, w, h] = pred.bbox;
-    const isAlert = detection.alertClasses.has(pred.class);
-    const color = isAlert ? '#d4614a' : '#6ec2e8';
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = Math.max(2, canvas.width / 400);
-    ctx.strokeRect(x, y, w, h);
-
-    // label background
-    const label = (CLASS_LABELS_PT[pred.class] || pred.class) + ' ' + Math.round(pred.score * 100) + '%';
-    const fontSize = Math.max(12, canvas.width / 50);
-    ctx.font = `600 ${fontSize}px 'JetBrains Mono', monospace`;
-    const metrics = ctx.measureText(label);
-    const padH = fontSize * 0.4;
-    const padV = fontSize * 0.25;
-    const labelH = fontSize + padV * 2;
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y - labelH, metrics.width + padH * 2, labelH);
-
-    ctx.fillStyle = '#0a0d0a';
-    ctx.fillText(label, x + padH, y - padV - 2);
-  });
+// ============ Drawing helpers ============
+function drawBox(ctx, canvas, bbox, label, score, isAlert) {
+  const [x, y, w, h] = bbox;
+  const color = isAlert ? '#d4614a' : '#6ec2e8';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, canvas.width / 400);
+  ctx.strokeRect(x, y, w, h);
+  const text = label + ' ' + Math.round(score * 100) + '%';
+  const fontSize = Math.max(12, canvas.width / 50);
+  ctx.font = `600 ${fontSize}px 'JetBrains Mono', monospace`;
+  const m = ctx.measureText(text);
+  const padH = fontSize * 0.4, padV = fontSize * 0.25;
+  const labelH = fontSize + padV * 2;
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y - labelH, m.width + padH * 2, labelH);
+  ctx.fillStyle = '#0a0d0a';
+  ctx.fillText(text, x + padH, y - padV - 2);
 }
-
-function updateBadge(el, relevant) {
-  if (relevant.length === 0) {
-    el.classList.remove('active', 'alert');
-    el.textContent = '';
-    return;
-  }
-  const hasAlert = relevant.some(p => detection.alertClasses.has(p.class));
+function drawFallMarker(ctx, canvas, bboxNorm /* {x,y,w,h} 0-1 */) {
+  const x = bboxNorm.x * canvas.width;
+  const y = bboxNorm.y * canvas.height;
+  const w = bboxNorm.w * canvas.width;
+  const h = bboxNorm.h * canvas.height;
+  ctx.strokeStyle = '#d4614a';
+  ctx.lineWidth = Math.max(3, canvas.width / 250);
+  ctx.setLineDash([canvas.width / 60, canvas.width / 120]);
+  ctx.strokeRect(x, y, w, h);
+  ctx.setLineDash([]);
+  const label = '⚠ QUEDA';
+  const fs = Math.max(14, canvas.width / 40);
+  ctx.font = `700 ${fs}px 'JetBrains Mono', monospace`;
+  const m = ctx.measureText(label);
+  const padH = fs * 0.4, padV = fs * 0.25;
+  const lh = fs + padV * 2;
+  ctx.fillStyle = '#d4614a';
+  ctx.fillRect(x, y - lh, m.width + padH * 2, lh);
+  ctx.fillStyle = '#0a0d0a';
+  ctx.fillText(label, x + padH, y - padV - 2);
+}
+function updateBadge(el, items) {
+  if (items.length === 0) { el.classList.remove('active', 'alert'); el.textContent = ''; return; }
+  const hasAlert = items.some(i => i.alert);
   el.classList.add('active');
   el.classList.toggle('alert', hasAlert);
-  const summary = relevant.map(p => CLASS_LABELS_PT[p.class] || p.class);
-  el.textContent = '· ' + summary.join(', ');
+  el.textContent = '· ' + items.map(i => i.label).join(', ');
+}
+function flashTile(wrapper) {
+  wrapper.classList.remove('alerting');
+  void wrapper.offsetWidth; // reflow
+  wrapper.classList.add('alerting');
+  setTimeout(() => wrapper.classList.remove('alerting'), 500);
 }
 
+// ============ Alerta + snapshot + log ============
 function triggerAlert(tile, prediction) {
   const now = Date.now();
   const last = detection.cooldowns.get(tile.peerId) || 0;
-  if (now - last < 10000) return; // 10s cooldown por câmera
+  const cooldown = detection.workMode === 'shipping' ? 3000 : 10000;
+  if (now - last < cooldown) return;
   detection.cooldowns.set(tile.peerId, now);
 
-  // captura snapshot
   const thumb = captureThumbnail(tile.video, 320, 240);
-
-  // registra evento
   const event = {
-    time: now,
-    peerId: tile.peerId,
+    time: now, peerId: tile.peerId,
     class: prediction.class,
-    label: CLASS_LABELS_PT[prediction.class] || prediction.class,
-    score: prediction.score,
+    label: prediction.label,
+    score: prediction.score || 1,
     thumb,
   };
   detection.events.unshift(event);
   if (detection.events.length > 50) detection.events = detection.events.slice(0, 50);
   storage('vigilia:events', detection.events);
   updateLogBadge();
-
-  // beep
   if (detection.alertsEnabled) playAlert();
 }
-
 function captureThumbnail(video, w, h) {
   try {
-    const canvas = document.createElement('canvas');
-    canvas.width = w; canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    // preserva aspect com cover
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
     const vw = video.videoWidth, vh = video.videoHeight;
     if (!vw || !vh) return null;
     const scale = Math.max(w / vw, h / vh);
     const sw = w / scale, sh = h / scale;
     const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, w, h);
-    return canvas.toDataURL('image/jpeg', 0.6);
-  } catch (err) {
-    console.warn('snapshot fail', err);
-    return null;
-  }
+    c.getContext('2d').drawImage(video, sx, sy, sw, sh, 0, 0, w, h);
+    return c.toDataURL('image/jpeg', 0.6);
+  } catch { return null; }
 }
-
 function playAlert() {
-  const ctx = detection.audioCtx;
-  if (!ctx) return;
+  const ctx = detection.audioCtx; if (!ctx) return;
   try {
     const now = ctx.currentTime;
-    // two-tone beep
     [880, 660].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'square';
       osc.frequency.value = freq;
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      const start = now + i * 0.15;
-      gain.gain.setValueAtTime(0.15, start);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.12);
-      osc.start(start);
-      osc.stop(start + 0.13);
+      osc.connect(gain); gain.connect(ctx.destination);
+      const s = now + i * 0.15;
+      gain.gain.setValueAtTime(0.15, s);
+      gain.gain.exponentialRampToValueAtTime(0.001, s + 0.12);
+      osc.start(s); osc.stop(s + 0.13);
     });
-  } catch (err) {
-    console.warn('beep fail', err);
-  }
+  } catch {}
 }
-
-// ============ LOG MODAL ============
 function updateLogBadge() {
-  const badge = document.getElementById('log-badge');
-  if (!badge) return;
+  const b = document.getElementById('log-badge'); if (!b) return;
   const n = detection.events.length;
-  if (n > 0) {
-    badge.textContent = n > 99 ? '99+' : String(n);
-    badge.style.display = 'inline-block';
-  } else {
-    badge.style.display = 'none';
-  }
+  if (n > 0) { b.textContent = n > 99 ? '99+' : String(n); b.style.display = 'inline-block'; }
+  else b.style.display = 'none';
 }
-
 function showLog() {
-  const backdrop = document.createElement('div');
-  backdrop.className = 'modal-backdrop';
-  backdrop.innerHTML = `
+  const bd = document.createElement('div');
+  bd.className = 'modal-backdrop';
+  bd.innerHTML = `
     <div class="modal">
       <div class="modal-header">
         <span>LOG DE DETECÇÕES</span>
@@ -1323,61 +1404,42 @@ function showLog() {
         </div>
       </div>
       <div class="modal-body" id="modal-body"></div>
-    </div>
-  `;
-
-  document.body.appendChild(backdrop);
+    </div>`;
+  document.body.appendChild(bd);
   renderLogItems();
-
-  document.getElementById('close-log').addEventListener('click', () => backdrop.remove());
+  document.getElementById('close-log').addEventListener('click', () => bd.remove());
   document.getElementById('clear-log').addEventListener('click', () => {
-    if (!confirm('Limpar todo o log de detecções?')) return;
-    detection.events = [];
-    storage('vigilia:events', []);
-    updateLogBadge();
-    renderLogItems();
+    if (!confirm('Limpar todo o log?')) return;
+    detection.events = []; storage('vigilia:events', []); updateLogBadge(); renderLogItems();
   });
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) backdrop.remove();
-  });
+  bd.addEventListener('click', (e) => { if (e.target === bd) bd.remove(); });
 }
-
 function renderLogItems() {
-  const body = document.getElementById('modal-body');
-  if (!body) return;
-  if (detection.events.length === 0) {
-    body.innerHTML = '<div class="log-empty">nenhuma detecção registrada</div>';
-    return;
-  }
+  const body = document.getElementById('modal-body'); if (!body) return;
+  if (detection.events.length === 0) { body.innerHTML = '<div class="log-empty">nenhuma detecção registrada</div>'; return; }
   body.innerHTML = '';
   detection.events.forEach((ev, idx) => {
     const item = document.createElement('div');
     item.className = 'log-item';
-    const d = new Date(ev.time);
-    const timeStr = fmtDateTime(d);
     item.innerHTML = `
-      <span class="log-time">${timeStr}</span>
+      <span class="log-time">${fmtDateTime(new Date(ev.time))}</span>
       <span class="log-detail">
         <span class="log-cam">${ev.peerId}</span> —
         <span class="log-class">${ev.label}</span>
-        <span class="log-score">(${Math.round(ev.score * 100)}%)</span>
+        <span class="log-score">(${Math.round((ev.score || 1) * 100)}%)</span>
       </span>
       ${ev.thumb
         ? `<img class="log-thumb" src="${ev.thumb}" data-idx="${idx}" alt="snapshot">`
-        : `<div class="log-thumb placeholder">sem img</div>`}
-    `;
+        : `<div class="log-thumb placeholder">sem img</div>`}`;
     body.appendChild(item);
   });
-
   body.querySelectorAll('.log-thumb[data-idx]').forEach(el => {
     el.addEventListener('click', () => {
-      const idx = Number(el.dataset.idx);
-      const ev = detection.events[idx];
+      const ev = detection.events[Number(el.dataset.idx)];
       if (ev?.thumb) showSnapshot(ev.thumb);
     });
   });
 }
-
 function showSnapshot(dataUrl) {
   const v = document.createElement('div');
   v.className = 'snapshot-viewer';
@@ -1386,7 +1448,7 @@ function showSnapshot(dataUrl) {
   document.body.appendChild(v);
 }
 
-// ============ cleanup / back ============
+// ============ cleanup ============
 function backToMenu() {
   try { state.peer && state.peer.destroy(); } catch {}
   if (state.localStream) state.localStream.getTracks().forEach(t => t.stop());
@@ -1394,13 +1456,10 @@ function backToMenu() {
   state.cameras.forEach(t => t.destroy());
   state.cameras.clear();
   state.activeCalls.clear();
-  state.localStream = null;
-  state.peer = null;
-  state.myId = null;
+  state.localStream = null; state.peer = null; state.myId = null;
   renderModeSelect();
 }
 
-// ============ boot ============
 renderModeSelect();
 </script>
 </body>
