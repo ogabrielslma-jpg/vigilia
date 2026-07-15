@@ -1,4 +1,4 @@
-// Proxy para Groq (API compatível com OpenAI) - com JSON mode
+// Proxy para Groq (API compatível com OpenAI)
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({error:'Method not allowed'}); return; }
   const KEY = process.env.GROQ_KEY;
@@ -24,8 +24,7 @@ export default async function handler(req, res) {
           ]
         }],
         temperature: 0.2,
-        max_completion_tokens: 800,
-        response_format: { type: 'json_object' }
+        max_completion_tokens: 1200
       })
     });
     if (!r.ok) { res.status(r.status).json({ error: 'Groq error', detail: await r.text() }); return; }
