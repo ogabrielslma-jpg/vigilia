@@ -300,7 +300,7 @@ function renderModeSelect() {
     el.addEventListener('click', () => selectMode(el.dataset.mode));
   });
 }
-function selectMode(mode) { state.mode = mode; if (mode === 'camera') renderCamera(); else renderPanel(); }
+function selectMode(mode) { state.mode = mode; storage('vigilia:last-mode', mode); if (mode === 'camera') renderCamera(); else renderPanel(); }
 
 // ============ CAMERA MODE ============
 function renderCamera() {
@@ -1371,10 +1371,15 @@ function backToMenu() {
   state.cameras.forEach(t => t.destroy());
   state.cameras.clear(); state.activeCalls.clear();
   state.localStream = null; state.peer = null; state.myId = null;
+  try { localStorage.removeItem('vigilia:last-mode'); } catch {}
   renderModeSelect();
 }
 
-renderModeSelect();
+(function boot() {
+  const saved = storage('vigilia:last-mode');
+  if (saved === 'camera' || saved === 'panel') selectMode(saved);
+  else renderModeSelect();
+})();
 </script>
 </body>
 </html>
