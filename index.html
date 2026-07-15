@@ -847,9 +847,9 @@ function parseGeminiJson(text) {
   } catch { return null; }
 }
 
-const GEMINI_PROMPT_CONFIRM = `Voce esta analisando um frame de camera de galpao de transportadora ou ambiente residencial. Um detector automatico sinalizou possivel evento do tipo: "{LABEL}". Analise a imagem e responda APENAS em JSON valido, sem markdown, sem texto extra: {"confirmed":true|false,"description":"descricao curta em pt-br max 15 palavras","urgency":"baixa"|"media"|"alta"}`;
+const GEMINI_PROMPT_CONFIRM = `Voce analisa um frame de camera de vigilancia. Detector automatico sinalizou: "{LABEL}". Sua resposta deve ser APENAS um objeto JSON valido em portugues brasileiro, sem raciocinio, sem markdown, sem texto antes ou depois. Formato exato: {"confirmed":true,"description":"texto curto em pt-BR de no maximo 15 palavras","urgency":"baixa"} onde confirmed e true ou false, urgency e baixa|media|alta. Responda o JSON agora.`;
 
-const GEMINI_PROMPT_PERIODIC = `Voce analisa um frame de camera de vigilancia (galpao ou residencia). Responda APENAS em JSON valido, sem markdown: {"status":"normal"|"atencao"|"risco","description":"descricao em pt-br max 20 palavras","concerns":["preoc1","preoc2"]}. Use "concerns" vazio se tudo normal.`;
+const GEMINI_PROMPT_PERIODIC = `Voce analisa um frame de camera de vigilancia. Sua resposta deve ser APENAS um objeto JSON valido em portugues brasileiro, sem raciocinio, sem markdown, sem texto antes ou depois. Formato exato: {"status":"normal","description":"texto em pt-BR de no maximo 20 palavras","concerns":[]} onde status e normal|atencao|risco, concerns e array de strings (vazio se tudo normal). Responda o JSON agora.`;
 
 
 // ============ FALL DETECTOR (v4 — centroide global) ============

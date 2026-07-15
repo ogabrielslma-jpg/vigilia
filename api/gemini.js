@@ -1,5 +1,4 @@
-// Proxy para Groq (API compatível com OpenAI)
-// Nome do arquivo mantido como gemini.js para não quebrar o frontend
+// Proxy para Groq (API compatível com OpenAI) - com JSON mode
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({error:'Method not allowed'}); return; }
   const KEY = process.env.GROQ_KEY;
@@ -25,7 +24,8 @@ export default async function handler(req, res) {
           ]
         }],
         temperature: 0.2,
-        max_completion_tokens: 400
+        max_completion_tokens: 800,
+        response_format: { type: 'json_object' }
       })
     });
     if (!r.ok) { res.status(r.status).json({ error: 'Groq error', detail: await r.text() }); return; }
