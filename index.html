@@ -9,10 +9,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
 <style>
 :root {
   --bg: #0a0d0a;
   --bg-elevated: rgba(20, 23, 20, 0.6);
+  --bg-modal: rgba(10, 13, 10, 0.95);
   --border: #262b26;
   --border-strong: #3a3f3a;
   --text: #e8ebe5;
@@ -21,6 +24,7 @@
   --accent: #e8b84c;
   --danger: #d4614a;
   --success: #7fa870;
+  --detect: #6ec2e8;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
@@ -44,7 +48,6 @@ body {
 
 button { font-family: inherit; color: inherit; background: none; border: none; cursor: pointer; }
 input { font-family: inherit; color: inherit; background: none; border: none; outline: none; }
-
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* --- Mode select --- */
@@ -128,6 +131,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border);
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .topbar-brand {
@@ -156,19 +160,20 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   50% { opacity: 0.35; }
 }
 
-.topbar-actions { display: flex; gap: 0.5rem; }
+.topbar-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 .btn {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.6rem 0.9rem;
+  padding: 0.55rem 0.85rem;
   border: 1px solid var(--border);
   color: var(--text);
   background: transparent;
   transition: all 0.15s ease;
   font-weight: 500;
+  white-space: nowrap;
 }
 .btn:hover:not(:disabled) { border-color: var(--border-strong); background: rgba(255,255,255,0.02); }
 
@@ -177,6 +182,21 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-danger { border-color: var(--danger); color: var(--danger); }
 .btn-danger:hover:not(:disabled) { background: var(--danger); color: var(--bg); }
+
+.btn-toggle-on { border-color: var(--detect); color: var(--detect); background: rgba(110,194,232,0.08); }
+.btn-toggle-on:hover:not(:disabled) { background: var(--detect); color: var(--bg); }
+
+.btn-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0 0.35rem;
+  background: var(--danger);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: 2px;
+  min-width: 1.2rem;
+  text-align: center;
+}
 
 /* --- Camera mode --- */
 .camera-screen { display: flex; flex-direction: column; min-height: 100dvh; }
@@ -298,6 +318,20 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .add-camera input:focus { border-color: var(--accent); }
 .add-camera input::placeholder { color: var(--dim); }
 
+.detect-status {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--border);
+}
+.detect-status.loading { color: var(--detect); border-left-color: var(--detect); }
+.detect-status.ready { color: var(--detect); border-left-color: var(--detect); }
+.detect-status.error { color: var(--danger); border-left-color: var(--danger); }
+.detect-status.off { display: none; }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
@@ -318,6 +352,16 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   display: block;
 }
 
+.tile canvas.detect-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .tile-empty-msg {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -328,6 +372,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   background: #000;
   text-align: center;
   padding: 1rem;
+  z-index: 3;
 }
 
 .tile-header {
@@ -341,9 +386,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 0.7rem;
   letter-spacing: 0.05em;
   z-index: 2;
+  gap: 0.5rem;
 }
 
 .tile-id { color: var(--text); font-weight: 500; }
+
+.tile-detect-badge {
+  color: var(--detect);
+  font-size: 0.65rem;
+  font-weight: 500;
+  display: none;
+}
+.tile-detect-badge.active { display: inline; }
+.tile-detect-badge.alert { color: var(--danger); }
 
 .tile-footer {
   position: absolute; bottom: 0; left: 0; right: 0;
@@ -404,6 +459,108 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   line-height: 1.7;
 }
 
+/* --- Modal (log de detecções) --- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-modal);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+}
+
+.modal {
+  width: 100%;
+  max-width: 46rem;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.modal-header-actions { display: flex; gap: 0.5rem; }
+
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.log-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.log-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  transition: background 0.15s ease;
+}
+.log-item:hover { background: rgba(255,255,255,0.02); }
+
+.log-time { color: var(--muted); font-weight: 500; }
+.log-detail { color: var(--text); }
+.log-detail .log-class { color: var(--danger); font-weight: 600; }
+.log-detail .log-cam { color: var(--accent); }
+.log-detail .log-score { color: var(--muted); font-size: 0.75rem; }
+
+.log-thumb {
+  width: 60px;
+  height: 45px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.log-thumb:hover { border-color: var(--accent); }
+.log-thumb.placeholder {
+  background: var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--dim);
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+}
+
+.snapshot-viewer {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  cursor: zoom-out;
+}
+.snapshot-viewer img {
+  max-width: 100%;
+  max-height: 100%;
+  border: 1px solid var(--border-strong);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
@@ -414,7 +571,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 <script>
 // ============================================================
-// VIGÍLIA — painel de vigilância residencial via WebRTC
+// VIGÍLIA — painel de vigilância com detecção de objetos
 // ============================================================
 
 const app = document.getElementById('app');
@@ -430,6 +587,34 @@ const state = {
   clockInt: null,
 };
 
+// --- Detection module ---
+const detection = {
+  detector: null,
+  loading: false,
+  enabled: false,
+  alertsEnabled: true,
+  audioCtx: null,
+  cooldowns: new Map(), // peerId -> last alert timestamp
+  events: [], // last events (max 50)
+  targetClasses: new Set(['person', 'cat', 'dog']),
+  alertClasses: new Set(['person']),
+};
+
+const CLASS_LABELS_PT = {
+  person: 'pessoa',
+  cat: 'gato',
+  dog: 'cachorro',
+  car: 'carro',
+  motorcycle: 'moto',
+  bicycle: 'bicicleta',
+  bird: 'pássaro',
+  backpack: 'mochila',
+  handbag: 'bolsa',
+  suitcase: 'mala',
+  'cell phone': 'celular',
+  laptop: 'notebook',
+};
+
 // --- utils ---
 function friendlyId() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -442,14 +627,17 @@ function storage(key, val) {
   try {
     if (val === undefined) return JSON.parse(localStorage.getItem(key) || 'null');
     localStorage.setItem(key, JSON.stringify(val));
-  } catch { /* privacy mode / artifact sandbox */ }
+  } catch { /* fallback: em memória apenas */ }
 }
 
 function fmtTime(d = new Date()) {
   return d.toLocaleTimeString('pt-BR', { hour12: false });
 }
 
-// A minimal "empty" stream so peer.call() can be initiated one-way
+function fmtDateTime(d = new Date()) {
+  return d.toLocaleString('pt-BR', { hour12: false });
+}
+
 function createEmptyStream() {
   const canvas = document.createElement('canvas');
   canvas.width = 2; canvas.height = 2;
@@ -459,7 +647,7 @@ function createEmptyStream() {
   return canvas.captureStream(1);
 }
 
-// ============ mode select ============
+// ============ MODE SELECT ============
 function renderModeSelect() {
   app.innerHTML = `
     <div class="mode-select">
@@ -479,12 +667,12 @@ function renderModeSelect() {
           <div class="mode-marker">02</div>
           <div class="mode-content">
             <div class="mode-title">Ver painel</div>
-            <div class="mode-desc">Este dispositivo monitora. Abra no computador ou tablet de onde você vai assistir.</div>
+            <div class="mode-desc">Este dispositivo monitora e detecta. Abra no computador de onde você vai assistir.</div>
           </div>
         </button>
       </div>
       <div class="mode-footer">
-        Vídeo direto entre dispositivos (peer-to-peer). Nenhum servidor guarda a imagem.
+        Vídeo peer-to-peer. Detecção de objetos processada localmente no seu computador.
       </div>
     </div>
   `;
@@ -660,6 +848,16 @@ function setCamStatus(msg, kind) {
 
 // ============ PANEL MODE ============
 function renderPanel() {
+  // load saved settings
+  const savedDetect = storage('vigilia:detect-on');
+  const savedAlerts = storage('vigilia:alerts-on');
+  detection.enabled = savedDetect === true;
+  detection.alertsEnabled = savedAlerts !== false; // default true
+
+  // load saved events
+  const savedEvents = storage('vigilia:events') || [];
+  detection.events = savedEvents;
+
   app.innerHTML = `
     <div class="panel-screen">
       <div class="topbar">
@@ -668,6 +866,9 @@ function renderPanel() {
           <span>VIGÍLIA · PAINEL</span>
         </div>
         <div class="topbar-actions">
+          <button class="btn" id="toggle-detect">Detecção OFF</button>
+          <button class="btn" id="toggle-alerts">Som ON</button>
+          <button class="btn" id="show-log">Log <span class="btn-badge" id="log-badge" style="display:none">0</span></button>
           <button class="btn" id="back-btn">Voltar</button>
         </div>
       </div>
@@ -676,6 +877,7 @@ function renderPanel() {
           <input id="add-input" placeholder="cole aqui o ID (ex: vg-3F7B)" autocapitalize="off" autocomplete="off" spellcheck="false">
           <button class="btn btn-primary" id="add-btn">Adicionar</button>
         </div>
+        <div class="detect-status off" id="detect-status"></div>
         <div class="grid" id="grid"></div>
       </div>
     </div>
@@ -686,9 +888,17 @@ function renderPanel() {
   document.getElementById('add-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') onAddCamera();
   });
+  document.getElementById('toggle-detect').addEventListener('click', toggleDetection);
+  document.getElementById('toggle-alerts').addEventListener('click', toggleAlerts);
+  document.getElementById('show-log').addEventListener('click', showLog);
 
+  updateDetectionButtons();
+  updateLogBadge();
   renderGridEmpty();
   initPeerAsPanel();
+
+  // if detection was on, load detector
+  if (detection.enabled) initDetector();
 }
 
 function onAddCamera() {
@@ -751,6 +961,8 @@ function connectToCamera(peerId) {
     tile.gotStream = true;
     tile.video.srcObject = remoteStream;
     tile.setLive();
+    // start detection loop if enabled
+    startDetectionLoop(tile);
   });
 
   call.on('close', () => {
@@ -773,6 +985,10 @@ function createTile(peerId) {
   video.playsInline = true;
   wrapper.appendChild(video);
 
+  const canvas = document.createElement('canvas');
+  canvas.className = 'detect-overlay';
+  wrapper.appendChild(canvas);
+
   const emptyMsg = document.createElement('div');
   emptyMsg.className = 'tile-empty-msg';
   emptyMsg.textContent = 'conectando…';
@@ -781,7 +997,10 @@ function createTile(peerId) {
   const header = document.createElement('div');
   header.className = 'tile-header';
   header.innerHTML = `
-    <span class="tile-id"></span>
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+      <span class="tile-id"></span>
+      <span class="tile-detect-badge"></span>
+    </div>
     <button class="tile-remove" title="Remover">✕</button>
   `;
   header.querySelector('.tile-id').textContent = peerId;
@@ -797,13 +1016,24 @@ function createTile(peerId) {
 
   const timeEl = footer.querySelector('.tile-time');
   const liveEl = footer.querySelector('.tile-live');
+  const badgeEl = header.querySelector('.tile-detect-badge');
   const removeBtn = header.querySelector('.tile-remove');
 
   const timeInt = setInterval(() => { timeEl.textContent = fmtTime(); }, 1000);
   timeEl.textContent = fmtTime();
 
+  video.addEventListener('loadedmetadata', () => {
+    if (video.videoWidth && video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+    }
+  });
+
   const tile = {
-    wrapper, video, gotStream: false, call: null,
+    peerId,
+    wrapper, video, canvas,
+    gotStream: false, call: null,
+    detectionTimeout: null,
     setLive() {
       emptyMsg.style.display = 'none';
       liveEl.classList.add('active');
@@ -813,8 +1043,23 @@ function createTile(peerId) {
       emptyMsg.textContent = msg;
       emptyMsg.style.display = 'flex';
     },
+    updateDetections(predictions) {
+      drawBoxes(canvas, predictions);
+      const relevant = predictions.filter(p => detection.targetClasses.has(p.class));
+      updateBadge(badgeEl, relevant);
+      // alertas
+      const alertHits = relevant.filter(p => detection.alertClasses.has(p.class));
+      if (alertHits.length > 0) triggerAlert(tile, alertHits[0]);
+    },
+    clearDetections() {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      badgeEl.classList.remove('active', 'alert');
+      badgeEl.textContent = '';
+    },
     destroy() {
       clearInterval(timeInt);
+      clearTimeout(tile.detectionTimeout);
       try { tile.call && tile.call.close(); } catch {}
       try { tile.video.srcObject?.getTracks().forEach(t => t.stop()); } catch {}
       wrapper.remove();
@@ -851,6 +1096,294 @@ function renderGridEmpty() {
     </span>
   `;
   grid.appendChild(el);
+}
+
+// ============ DETECÇÃO DE OBJETOS ============
+
+async function initDetector() {
+  if (detection.detector || detection.loading) return;
+  detection.loading = true;
+  setDetectStatus('Carregando modelo de detecção (~4MB)…', 'loading');
+  try {
+    if (tf.setBackend) await tf.setBackend('webgl');
+    detection.detector = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
+    setDetectStatus('Modelo carregado. Detectando pessoa, cachorro e gato.', 'ready');
+  } catch (err) {
+    console.error('Falha ao carregar detector:', err);
+    setDetectStatus('Falha ao carregar detector: ' + err.message, 'error');
+    detection.enabled = false;
+    updateDetectionButtons();
+  } finally {
+    detection.loading = false;
+  }
+}
+
+function setDetectStatus(msg, kind) {
+  const el = document.getElementById('detect-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'detect-status ' + (kind || '');
+}
+
+function toggleDetection() {
+  detection.enabled = !detection.enabled;
+  storage('vigilia:detect-on', detection.enabled);
+  updateDetectionButtons();
+
+  // create audio context on first click (user gesture)
+  if (detection.enabled && !detection.audioCtx) {
+    try { detection.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+  }
+
+  if (detection.enabled) {
+    initDetector();
+    // start loops for all connected tiles
+    state.cameras.forEach(tile => {
+      if (tile.gotStream) startDetectionLoop(tile);
+    });
+  } else {
+    setDetectStatus('', 'off');
+    state.cameras.forEach(tile => tile.clearDetections());
+  }
+}
+
+function toggleAlerts() {
+  detection.alertsEnabled = !detection.alertsEnabled;
+  storage('vigilia:alerts-on', detection.alertsEnabled);
+  updateDetectionButtons();
+}
+
+function updateDetectionButtons() {
+  const detectBtn = document.getElementById('toggle-detect');
+  const alertsBtn = document.getElementById('toggle-alerts');
+  if (detectBtn) {
+    detectBtn.textContent = detection.enabled ? 'Detecção ON' : 'Detecção OFF';
+    detectBtn.classList.toggle('btn-toggle-on', detection.enabled);
+  }
+  if (alertsBtn) {
+    alertsBtn.textContent = detection.alertsEnabled ? 'Som ON' : 'Som OFF';
+    alertsBtn.classList.toggle('btn-toggle-on', detection.alertsEnabled);
+  }
+}
+
+function startDetectionLoop(tile) {
+  if (tile.detectionTimeout) clearTimeout(tile.detectionTimeout);
+
+  const tick = async () => {
+    if (!state.cameras.has(tile.peerId)) return; // removed
+    try {
+      if (detection.enabled && detection.detector && tile.video.readyState >= 2) {
+        const predictions = await detection.detector.detect(tile.video, 10, 0.5);
+        tile.updateDetections(predictions);
+      }
+    } catch (err) {
+      console.warn('detect err', err);
+    }
+    tile.detectionTimeout = setTimeout(tick, 800);
+  };
+  tick();
+}
+
+function drawBoxes(canvas, predictions) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  predictions.forEach(pred => {
+    if (!detection.targetClasses.has(pred.class)) return;
+    const [x, y, w, h] = pred.bbox;
+    const isAlert = detection.alertClasses.has(pred.class);
+    const color = isAlert ? '#d4614a' : '#6ec2e8';
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(2, canvas.width / 400);
+    ctx.strokeRect(x, y, w, h);
+
+    // label background
+    const label = (CLASS_LABELS_PT[pred.class] || pred.class) + ' ' + Math.round(pred.score * 100) + '%';
+    const fontSize = Math.max(12, canvas.width / 50);
+    ctx.font = `600 ${fontSize}px 'JetBrains Mono', monospace`;
+    const metrics = ctx.measureText(label);
+    const padH = fontSize * 0.4;
+    const padV = fontSize * 0.25;
+    const labelH = fontSize + padV * 2;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y - labelH, metrics.width + padH * 2, labelH);
+
+    ctx.fillStyle = '#0a0d0a';
+    ctx.fillText(label, x + padH, y - padV - 2);
+  });
+}
+
+function updateBadge(el, relevant) {
+  if (relevant.length === 0) {
+    el.classList.remove('active', 'alert');
+    el.textContent = '';
+    return;
+  }
+  const hasAlert = relevant.some(p => detection.alertClasses.has(p.class));
+  el.classList.add('active');
+  el.classList.toggle('alert', hasAlert);
+  const summary = relevant.map(p => CLASS_LABELS_PT[p.class] || p.class);
+  el.textContent = '· ' + summary.join(', ');
+}
+
+function triggerAlert(tile, prediction) {
+  const now = Date.now();
+  const last = detection.cooldowns.get(tile.peerId) || 0;
+  if (now - last < 10000) return; // 10s cooldown por câmera
+  detection.cooldowns.set(tile.peerId, now);
+
+  // captura snapshot
+  const thumb = captureThumbnail(tile.video, 320, 240);
+
+  // registra evento
+  const event = {
+    time: now,
+    peerId: tile.peerId,
+    class: prediction.class,
+    label: CLASS_LABELS_PT[prediction.class] || prediction.class,
+    score: prediction.score,
+    thumb,
+  };
+  detection.events.unshift(event);
+  if (detection.events.length > 50) detection.events = detection.events.slice(0, 50);
+  storage('vigilia:events', detection.events);
+  updateLogBadge();
+
+  // beep
+  if (detection.alertsEnabled) playAlert();
+}
+
+function captureThumbnail(video, w, h) {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    // preserva aspect com cover
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return null;
+    const scale = Math.max(w / vw, h / vh);
+    const sw = w / scale, sh = h / scale;
+    const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, w, h);
+    return canvas.toDataURL('image/jpeg', 0.6);
+  } catch (err) {
+    console.warn('snapshot fail', err);
+    return null;
+  }
+}
+
+function playAlert() {
+  const ctx = detection.audioCtx;
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    // two-tone beep
+    [880, 660].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const start = now + i * 0.15;
+      gain.gain.setValueAtTime(0.15, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.12);
+      osc.start(start);
+      osc.stop(start + 0.13);
+    });
+  } catch (err) {
+    console.warn('beep fail', err);
+  }
+}
+
+// ============ LOG MODAL ============
+function updateLogBadge() {
+  const badge = document.getElementById('log-badge');
+  if (!badge) return;
+  const n = detection.events.length;
+  if (n > 0) {
+    badge.textContent = n > 99 ? '99+' : String(n);
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function showLog() {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <span>LOG DE DETECÇÕES</span>
+        <div class="modal-header-actions">
+          <button class="btn btn-danger" id="clear-log">Limpar</button>
+          <button class="btn" id="close-log">Fechar</button>
+        </div>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  renderLogItems();
+
+  document.getElementById('close-log').addEventListener('click', () => backdrop.remove());
+  document.getElementById('clear-log').addEventListener('click', () => {
+    if (!confirm('Limpar todo o log de detecções?')) return;
+    detection.events = [];
+    storage('vigilia:events', []);
+    updateLogBadge();
+    renderLogItems();
+  });
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) backdrop.remove();
+  });
+}
+
+function renderLogItems() {
+  const body = document.getElementById('modal-body');
+  if (!body) return;
+  if (detection.events.length === 0) {
+    body.innerHTML = '<div class="log-empty">nenhuma detecção registrada</div>';
+    return;
+  }
+  body.innerHTML = '';
+  detection.events.forEach((ev, idx) => {
+    const item = document.createElement('div');
+    item.className = 'log-item';
+    const d = new Date(ev.time);
+    const timeStr = fmtDateTime(d);
+    item.innerHTML = `
+      <span class="log-time">${timeStr}</span>
+      <span class="log-detail">
+        <span class="log-cam">${ev.peerId}</span> —
+        <span class="log-class">${ev.label}</span>
+        <span class="log-score">(${Math.round(ev.score * 100)}%)</span>
+      </span>
+      ${ev.thumb
+        ? `<img class="log-thumb" src="${ev.thumb}" data-idx="${idx}" alt="snapshot">`
+        : `<div class="log-thumb placeholder">sem img</div>`}
+    `;
+    body.appendChild(item);
+  });
+
+  body.querySelectorAll('.log-thumb[data-idx]').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = Number(el.dataset.idx);
+      const ev = detection.events[idx];
+      if (ev?.thumb) showSnapshot(ev.thumb);
+    });
+  });
+}
+
+function showSnapshot(dataUrl) {
+  const v = document.createElement('div');
+  v.className = 'snapshot-viewer';
+  v.innerHTML = `<img src="${dataUrl}" alt="snapshot ampliado">`;
+  v.addEventListener('click', () => v.remove());
+  document.body.appendChild(v);
 }
 
 // ============ cleanup / back ============
